@@ -7,6 +7,15 @@
     "ts-node": "^5.0.1",
     "typescript": "^2.8.1"
   },
+  "homepage": "https://github.com/VictorQueiroz/binobject#readme",
+  "bugs": {
+    "url" : "https://github.com/VictorQueiroz/binobject/issues",
+    "email" : "victorcqueirozg@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VictorQueiroz/binobject.git"
+  },
   "name": "binobject",
   "version": "1.0.0",
   "keywords": [
