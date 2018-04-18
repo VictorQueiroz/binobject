@@ -53,7 +53,7 @@ const buffer = binaryObject.encode({
     _id: new ObjectID()
 });
 
-assert.deepEqual(binaryObject.decode(buffer), {
+deepEqual(binaryObject.decode(buffer), {
     _id: new ObjectID()
 });
 ```
