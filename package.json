@@ -1,0 +1,20 @@
+{
+  "devDependencies": {
+    "@types/bson": "^1.0.8",
+    "@types/node": "^9.6.5",
+    "bson": "^2.0.5",
+    "sarg": "^1.1.1",
+    "ts-node": "^5.0.1",
+    "typescript": "^2.8.1"
+  },
+  "name": "binobject",
+  "version": "1.0.0",
+  "keywords": [
+    "binary",
+    "json",
+    "javascript",
+    "objects"
+  ],
+  "main": "./build/index.js",
+  "typings": "./build/index.d.ts"
+}
