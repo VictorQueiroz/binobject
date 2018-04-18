@@ -1,6 +1,6 @@
 # binobject
 
-Easy way to encode / decode JavaScript objects in binary format with support for Date, ArrayBuffer, all typed arrays and Node.JS `Buffer`.
+Easy way to encode / decode JavaScript objects in binary format with support for Date, ArrayBuffer and Node.js Buffer.
 
 ## Installation
 ```
