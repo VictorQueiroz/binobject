@@ -184,7 +184,7 @@ export class ObjectDecoder {
         else if(type == PropertyType.String)
             return this.readBytes(this.readNumber()).toString('utf8');
         else if(type == PropertyType.Date)
-            return new Date(this.readBytes(this.readNumber()).toString('utf8'));
+            return new Date(this.readDouble());
         else if(type == PropertyType.Boolean)
             return this.readUInt8() == 1 ? true : false;
         else if(type == PropertyType.Array)
