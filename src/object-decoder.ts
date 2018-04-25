@@ -133,6 +133,14 @@ export class ObjectDecoder {
         return result;
     }
 
+    private readDouble(): number {
+        const result = this.buffer.readDoubleLE(this.offset);
+
+        this.offset += 8;
+
+        return result;
+    }
+
     private readNativeMap(): Map<any, any> {
         const map = new Map();
         const length = this.readNumber();
