@@ -22,11 +22,16 @@ private:
     static Persistent<Function> constructor;
     static void New(const FunctionCallbackInfo<Value>& args);
     static void Encode(const FunctionCallbackInfo<Value>& args);
+    Local<Object> holder;
 
 public:
     static void Init(Isolate* isolate);
     static void NewInstance(const FunctionCallbackInfo<Value>& args);
     static void CreateObject(const FunctionCallbackInfo<Value>& args);
+
+    void SetCurrentHolder(Local<Object> holder);
+    Local<Object> GetHolder();
+
 };
 
 #endif

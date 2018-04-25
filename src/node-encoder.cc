@@ -160,6 +160,14 @@ void WriteObject(Isolate* isolate, bo_encoder* encoder, Local<Object> object) {
     }
 }
 
+void Encoder::SetCurrentHolder(Local<Object> n) {
+    holder = n;
+}
+
+Local<Object> Encoder::GetHolder() {
+    return holder;
+}
+
 void Encoder::Encode(const FunctionCallbackInfo<Value>& args) {
     Local<Value> value = args[0];
     Isolate* isolate = args.GetIsolate();
