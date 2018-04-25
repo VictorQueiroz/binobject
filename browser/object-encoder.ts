@@ -2,8 +2,8 @@ import { CustomInstruction } from './custom-types';
 import { PropertyType } from './constants';
 
 export class ObjectEncoder {
-    buffers: Buffer[];
-    custom?: CustomInstruction<any>[];
+    private buffers: Buffer[];
+    private custom?: CustomInstruction<any>[];
 
     constructor(custom?: CustomInstruction<any>[]) {
         this.buffers = [];
