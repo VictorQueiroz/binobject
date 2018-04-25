@@ -22,7 +22,7 @@ export class ObjectEncoder {
 
     private encodeInteger(byteLength: number, value: number, unsigned: boolean) {
         let type: PropertyType;
-        const buffer: Buffer = Buffer.alloc(1 + byteLength);
+        const buffer: Buffer = Buffer.allocUnsafe(1 + byteLength);
 
         if(byteLength == 1)
             type = unsigned ? PropertyType.UInt8 : PropertyType.Int8;
@@ -91,7 +91,7 @@ export class ObjectEncoder {
     }
 
     private writeUInt8(value: number) {
-        const buffer = Buffer.alloc(1);
+        const buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(value, 0);
         this.buffers.push(buffer);
     }
