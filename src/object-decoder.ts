@@ -18,7 +18,7 @@ export class ObjectDecoder {
         if(type == PropertyType.Object)
             return this.decodeObject();
 
-        throw new Error('Invalid initial message: ' + PropertyType[type]);
+        throw new Error(`Invalid initial message: ${PropertyType[type]} || ${type}`);
     }
 
     private readBytes(byteLength: number): Buffer {
