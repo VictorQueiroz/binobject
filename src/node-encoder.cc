@@ -243,8 +243,6 @@ void Encoder::Init(Isolate* isolate) {
 }
 
 void Encoder::New(const FunctionCallbackInfo<Value>& args){
-    Encoder* encoder = new Encoder();
-    encoder->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
 }
 
@@ -253,5 +251,9 @@ void Encoder::CreateObject(const FunctionCallbackInfo<Value>& args) {
     Local<Function> cons = Local<Function>::New(isolate, constructor);
     Local<Context> context = isolate->GetCallingContext();
     Local<Object> instance = cons->NewInstance(context).ToLocalChecked();
+
+    Encoder* encoder = new Encoder();
+    encoder->Wrap(instance);
+
     args.GetReturnValue().Set(instance);
 }
