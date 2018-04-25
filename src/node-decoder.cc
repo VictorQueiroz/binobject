@@ -106,7 +106,21 @@ Local<Value> ReadMapNative(Isolate* isolate, bo_decoder* decoder) {
 Local<Value> ReadValue(Isolate* isolate, bo_decoder* decoder) {
     uint8_t type = read_uint8(decoder);
 
-    if(type == BO::Object){
+    if(type == BO::Buffer) {
+        size_t byte_length = ReadNumber(isolate, decoder);
+        uint8_t* buffer = (uint8_t*) malloc(byte_length);
+
+        read_bytes(decoder, byte_length, buffer);
+
+        Local<Object> nodejs_buffer = node::Buffer::New(isolate, (char*) buffer, byte_length).ToLocalChecked();
+
+        return nodejs_buffer;
+    } else if(type == BO::Boolean) {
+        bool value = read_uint8(decoder) == 0 ? false : true;
+        Local<Boolean> boolean = Boolean::New(isolate, value);
+
+        return boolean;
+    } else if(type == BO::Object){
         Local<Object> result = Object::New(isolate);
         ReadObject(isolate, decoder, result);
 
