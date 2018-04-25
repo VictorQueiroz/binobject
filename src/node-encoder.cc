@@ -1,4 +1,5 @@
 #include <nan.h>
+#include "custom-type.h"
 #include "node-encoder.h"
 #include "node-binobject.h"
 
@@ -162,7 +163,48 @@ void WriteNativeMap(Isolate* isolate, Encoder* encoder, Local<Map> map) {
     }
 }
 
+/**
+ * Check if this value can be written using a type defined by the user
+ */
+bool CheckCustomType(Isolate* isolate, Encoder* encoder, Local<Value> value) {
+    Local<Array> instructions = Local<Array>::Cast(encoder->GetHolder()->Get(String::NewFromUtf8(isolate, "instructions")));
+    uint32_t length = instructions->Length();
+
+    for(uint32_t i = 0; i < length; i++) {
+        Local<Number> index = Number::New(isolate, i);
+        Local<Object> instruction = instructions->Get(index)->ToObject();
+
+        if(!instructions->Get(index)->IsObject()) {
+            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Instruction item should be plain objects")));
+            return true;
+        }
+
+        Local<Object> processor = instruction->Get(String::NewFromUtf8(isolate, "processor"))->ToObject();
+        uint8_t validationResult = CustomType::Validate(isolate, processor, value);
+        
+        if(validationResult == 2)
+            return true;
+        else if(validationResult == 0)
+            continue;
+
+        size_t buffer_length;
+        uint8_t* result;
+
+        if(CustomType::Encode(isolate, processor, value, &result, &buffer_length) != 0)
+            return true;
+
+        WriteNumber(isolate, encoder, buffer_length);
+        encoder->PushBuffer(buffer_length, result);
+        return true;
+    }
+
+    return false;
+}
+
 void WriteValue(Isolate* isolate, Encoder* encoder, Local<Value> value) {
+    if(CheckCustomType(isolate, encoder, value))
+        return;
+
     if(value->IsTypedArray()) {
         size_t byte_length = node::Buffer::Length(value);
         uint8_t* buffer = (uint8_t*)malloc(byte_length);
@@ -275,6 +317,13 @@ void Encoder::CreateObject(const FunctionCallbackInfo<Value>& args) {
     Local<Function> cons = Local<Function>::New(isolate, constructor);
     Local<Context> context = isolate->GetCallingContext();
     Local<Object> instance = cons->NewInstance(context).ToLocalChecked();
+
+    Local<Value> value = args[0];
+
+    if(args.Length() > 0 && !value->IsArray())
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "First argument must be an array or undefined")));
+    else if(value->IsArray())
+        instance->Set(String::NewFromUtf8(isolate, "instructions"), args[0]);
 
     Encoder* encoder = new Encoder();
     encoder->Wrap(instance);
