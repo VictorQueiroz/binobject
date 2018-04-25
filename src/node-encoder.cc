@@ -52,6 +52,50 @@ int WriteInteger(bo_encoder* encoder, size_t byte_length, double number, bool _u
     return BO::NumberErrors::Ok;
 }
 
+void Encoder::WriteUInt8(uint8_t n) {
+    write_uint8(encoder, n);
+}
+
+void Encoder::WriteDoubleLE(double n){
+    write_double_le(encoder, n);
+}
+
+void Encoder::WriteInt8(int8_t n) {
+    write_int8(encoder, n);
+}
+
+void Encoder::WriteInt16LE(int16_t n) {
+    write_int16_le(encoder, n);
+}
+
+void Encoder::WriteUInt16LE(uint16_t n) {
+    write_uint16_le(encoder, n);
+}
+
+void Encoder::WriteUInt32LE(uint32_t n) {
+    write_uint32_le(encoder, n);
+}
+
+void Encoder::WriteInt32LE(int32_t n) {
+    write_int32_le(encoder, n);
+}
+
+void Encoder::PushBuffer(size_t string_length, uint8_t* buffer){
+    push_buffer(encoder, string_length, buffer);
+}
+
+void Encoder::Finish() {
+    bo_encoder_finish(encoder);
+}
+
+void Encoder::CopyContents(void* target) {
+    memcpy(target, encoder->final_buffer, Length());
+}
+
+size_t Encoder::Length() {
+    return encoder->total_byte_length;
+}
+
 void WriteString(Isolate* isolate, bo_encoder* encoder, Local<String> value) {
     int string_length = value->Utf8Length();
     uint8_t* buffer = (uint8_t*) malloc(string_length + 1);

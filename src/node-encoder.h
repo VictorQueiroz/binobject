@@ -32,6 +32,15 @@ public:
     void SetCurrentHolder(Local<Object> holder);
     Local<Object> GetHolder();
 
+    void CopyContents(void* buffer);
+    void WriteInt8(int8_t n);
+    void WriteDoubleLE(double n);
+    void WriteUInt8(uint8_t n);
+    void WriteUInt16LE(uint16_t n);
+    void WriteUInt32LE(uint32_t n);
+    void WriteInt16LE(int16_t n);
+    void WriteInt32LE(int32_t n);
+    void PushBuffer(size_t string_length, uint8_t* buffer);
 };
 
 #endif
