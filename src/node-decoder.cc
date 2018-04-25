@@ -120,6 +120,8 @@ Local<Value> ReadValue(Isolate* isolate, bo_decoder* decoder) {
         Local<Boolean> boolean = Boolean::New(isolate, value);
 
         return boolean;
+    } else if(type == BO::Null) {
+        return Null(isolate);
     } else if(type == BO::Object){
         Local<Object> result = Object::New(isolate);
         ReadObject(isolate, decoder, result);
