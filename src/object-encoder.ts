@@ -122,6 +122,13 @@ export class ObjectEncoder {
         this.buffers.push(output);
     }
 
+    writeDouble(number: number) {
+        const buffer = Buffer.allocUnsafe(8);
+
+        buffer.writeDoubleLE(number, 0);
+        this.buffers.push(buffer);
+    }
+
     private encodeValue(value: any) {
         if(value == null){
             this.writeUInt8(PropertyType.Null);
