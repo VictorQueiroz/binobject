@@ -169,7 +169,7 @@ void Decoder::CreateObject(const FunctionCallbackInfo<Value>& args) {
     Local<Value> value = args[0];
 
     if(value->IsUndefined()){
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Expected array buffer view but got undefined instead")));
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Expected buffer but got undefined instead")));
         return;
     }
 
