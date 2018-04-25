@@ -3,6 +3,14 @@ test:
 		--require=ts-node/register \
 		--bail test/*.ts
 
+valgrind: build_tester
+	valgrind \
+		-v \
+		--track-origins=yes \
+		--leak-check=full \
+		--show-leak-kinds=all \
+		./build/test
+
 run_tester: build_tester
 	./build/test && echo "OK"
 
