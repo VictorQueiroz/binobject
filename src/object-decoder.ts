@@ -17,6 +17,8 @@ export class ObjectDecoder {
 
         if(type == PropertyType.Object)
             return this.decodeObject();
+        else if(type == PropertyType.Array)
+            return this.decodeArray();
 
         throw new Error(`Invalid initial message: ${PropertyType[type]} || ${type}`);
     }
