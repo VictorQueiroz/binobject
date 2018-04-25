@@ -119,7 +119,8 @@ Local<Value> ReadValue(Isolate* isolate, bo_decoder* decoder) {
 
         Local<String> string = String::NewFromOneByte(isolate, buffer, NewStringType::kNormal, string_length).ToLocalChecked();
 
-        return Local<Value>::Cast(string);
+        free(buffer);
+        return string;
     } else if(type == BO::Date) {
         double date = read_double_le(decoder);
 
