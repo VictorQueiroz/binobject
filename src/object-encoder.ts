@@ -140,7 +140,7 @@ export class ObjectEncoder {
             this.encodeNativeMap(value);
         } else if(value instanceof Date) {
             this.writeUInt8(PropertyType.Date);
-            this.writeString(value.toJSON());
+            this.writeDouble(value.getTime());
         } else if(typeof value == 'string') {
             this.writeUInt8(PropertyType.String);
             this.writeString(value);
