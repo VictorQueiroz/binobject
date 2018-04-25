@@ -18,29 +18,17 @@ Decoder::~Decoder() {
 Local<Value> ReadNumberAsValue(Isolate* isolate, bo_decoder* decoder, uint8_t type) {
     switch(type) {
         case BO::UInt8:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_uint8(decoder))
-            );
+            return Number::New(isolate, read_uint8(decoder));
         case BO::Int8:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_int8(decoder))
-            );
+            return Number::New(isolate, read_int8(decoder));
         case BO::UInt16:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_uint16_le(decoder))
-            );
+            return Number::New(isolate, read_uint16_le(decoder));
         case BO::Int16:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_int16_le(decoder))
-            );
+            return Number::New(isolate, read_int16_le(decoder));
         case BO::UInt32:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_uint32_le(decoder))
-            );
+            return Number::New(isolate, read_uint32_le(decoder));
         case BO::Int32:
-            return Local<Value>::Cast(
-                Number::New(isolate, read_int32_le(decoder))
-            );
+            return Number::New(isolate, read_int32_le(decoder));
     }
 
     return isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Got invalid integer type")));
@@ -99,7 +87,7 @@ Local<Value> ReadArray(Isolate* isolate, bo_decoder* decoder) {
     for(int i = 0; i < array_length; i++)
         list->Set(Number::New(isolate, i), ReadValue(isolate, decoder));
 
-    return Local<Value>::Cast(list);
+    return list;
 }
 
 Local<Value> ReadMapNative(Isolate* isolate, bo_decoder* decoder) {
