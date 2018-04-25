@@ -19,6 +19,8 @@ private:
     bo_encoder* encoder;
     Encoder();
     ~Encoder();
+    void Finish();
+    size_t Length();
     static Persistent<Function> constructor;
     static void New(const FunctionCallbackInfo<Value>& args);
     static void Encode(const FunctionCallbackInfo<Value>& args);
