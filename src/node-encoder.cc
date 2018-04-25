@@ -14,7 +14,7 @@ Encoder::~Encoder() {
     destroy_encoder(encoder);
 }
 
-int WriteInteger(bo_encoder* encoder, size_t byte_length, double number, bool _unsigned) {
+int WriteInteger(Encoder* encoder, size_t byte_length, double number, bool _unsigned) {
     uint8_t integer_type;
 
     if(byte_length == 1)
@@ -26,26 +26,26 @@ int WriteInteger(bo_encoder* encoder, size_t byte_length, double number, bool _u
     else
         return BO::NumberErrors::InvalidByteLength;
 
-    write_uint8(encoder, integer_type);
+    encoder->WriteUInt8(integer_type);
 
     switch(integer_type) {
         case BO::UInt8:
-            write_uint8(encoder, number);
+            encoder->WriteUInt8(number);
             break;
         case BO::Int8:
-            write_int8(encoder, number);
+            encoder->WriteInt8(number);
             break;
         case BO::UInt16:
-            write_uint16_le(encoder, number);
+            encoder->WriteUInt16LE(number);
             break;
         case BO::Int16:
-            write_int16_le(encoder, number);
+            encoder->WriteInt16LE(number);
             break;
         case BO::UInt32:
-            write_uint32_le(encoder, number);
+            encoder->WriteUInt32LE(number);
             break;
         case BO::Int32:
-            write_int32_le(encoder, number);
+            encoder->WriteInt32LE(number);
             break;
     }
 
@@ -96,16 +96,16 @@ size_t Encoder::Length() {
     return encoder->total_byte_length;
 }
 
-void WriteString(Isolate* isolate, bo_encoder* encoder, Local<String> value) {
+void WriteString(Isolate* isolate, Encoder* encoder, Local<String> value) {
     int string_length = value->Utf8Length();
     uint8_t* buffer = (uint8_t*) malloc(string_length + 1);
     value->WriteOneByte(buffer);
 
     WriteNumber(isolate, encoder, string_length);
-    push_buffer(encoder, string_length, buffer);
+    encoder->PushBuffer(string_length, buffer);
 }
 
-int WriteNumber(bo_encoder* encoder, double number) {
+int WriteNumber(Encoder* encoder, double number) {
     if((number >= -0x80) && (number <= 0x7f))
         return WriteInteger(encoder, 1, number, false);
     else if((number >= 0) && (number <= 0xff))
@@ -122,7 +122,7 @@ int WriteNumber(bo_encoder* encoder, double number) {
     return BO::NumberErrors::InvalidSize;
 }
 
-void WriteNumber(Isolate* isolate, bo_encoder* encoder, double number) {
+void WriteNumber(Isolate* isolate, Encoder* encoder, double number) {
     int result = WriteNumber(encoder, number);
 
     if(result != BO::NumberErrors::Ok) {
@@ -133,21 +133,21 @@ void WriteNumber(Isolate* isolate, bo_encoder* encoder, double number) {
     }
 }
 
-void WriteNumber(Isolate* isolate, bo_encoder* encoder, Local<Number> value) {
+void WriteNumber(Isolate* isolate, Encoder* encoder, Local<Number> value) {
     WriteNumber(isolate, encoder, value->Value());
 }
 
-void WriteArray(Isolate* isolate, bo_encoder* encoder, Local<Array> array) {
+void WriteArray(Isolate* isolate, Encoder* encoder, Local<Array> array) {
     uint32_t length = array->Length();
 
-    write_uint8(encoder, BO::PropertyType::Array);
+    encoder->WriteUInt8(BO::PropertyType::Array);
     WriteNumber(isolate, encoder, length);
 
     for(uint32_t i = 0; i < length; i++)
         WriteValue(isolate, encoder, array->Get(i));
 }
 
-void WriteNativeMap(Isolate* isolate, bo_encoder* encoder, Local<Map> map) {
+void WriteNativeMap(Isolate* isolate, Encoder* encoder, Local<Map> map) {
     Local<Array> array = map->AsArray();
     size_t array_length = map->Size() * 2;
 
@@ -162,15 +162,37 @@ void WriteNativeMap(Isolate* isolate, bo_encoder* encoder, Local<Map> map) {
     }
 }
 
-void WriteValue(Isolate* isolate, bo_encoder* encoder, Local<Value> value) {
-    if(value->IsMap()) {
-        write_uint8(encoder, BO::Map);
+void WriteValue(Isolate* isolate, Encoder* encoder, Local<Value> value) {
+    if(value->IsTypedArray()) {
+        size_t byte_length = node::Buffer::Length(value);
+        uint8_t* buffer = (uint8_t*)malloc(byte_length);
+
+        memcpy(buffer, node::Buffer::Data(value), byte_length);
+
+        encoder->WriteUInt8(BO::Buffer);
+        WriteNumber(isolate, encoder, byte_length);
+        encoder->PushBuffer(byte_length, buffer);
+    } if(value->IsBoolean()) {
+        Local<Boolean> boolean = Local<Boolean>::Cast(value);
+
+        encoder->WriteUInt8(BO::Boolean);
+
+        if(boolean->Value())
+            encoder->WriteUInt8(1);
+        else
+            encoder->WriteUInt8(0);
+    } else if(value->IsUndefined()) {
+        encoder->WriteUInt8(BO::Undefined);
+    } else if(value->IsNull()) {
+        encoder->WriteUInt8(BO::Null);
+    } else if(value->IsMap()) {
+        encoder->WriteUInt8(BO::Map);
         WriteNativeMap(isolate, encoder, Local<Map>::Cast(value));
     } else if(value->IsDate()) {
         Local<Date> date = Local<Date>::Cast(value);
 
-        write_uint8(encoder, BO::Date);
-        write_double_le(encoder, date->ValueOf());
+        encoder->WriteUInt8(BO::Date);
+        encoder->WriteDoubleLE(date->ValueOf());
     } else if(value->IsArray()) {
         Local<Array> list = Local<Array>::Cast(value);
         WriteArray(isolate, encoder, list);
@@ -179,7 +201,7 @@ void WriteValue(Isolate* isolate, bo_encoder* encoder, Local<Value> value) {
     } else if(value->IsString()) {
         Local<String> string = value->ToString(isolate);
 
-        write_uint8(encoder, BO::String);
+        encoder->WriteUInt8(BO::String);
         WriteString(isolate, encoder, string);
     } else if(value->IsObject()) {
         WriteObject(isolate, encoder, value->ToObject(isolate));
@@ -189,11 +211,11 @@ void WriteValue(Isolate* isolate, bo_encoder* encoder, Local<Value> value) {
     }
 }
 
-void WriteObject(Isolate* isolate, bo_encoder* encoder, Local<Object> object) {
+void WriteObject(Isolate* isolate, Encoder* encoder, Local<Object> object) {
     Local<Array> properties = object->GetOwnPropertyNames();
     uint32_t length = properties->Length();
     
-    write_uint8(encoder, BO::Object);
+    encoder->WriteUInt8(BO::Object);
     WriteNumber(encoder, length);
 
     for(uint32_t i = 0; i < length; i++){
@@ -215,16 +237,18 @@ Local<Object> Encoder::GetHolder() {
 void Encoder::Encode(const FunctionCallbackInfo<Value>& args) {
     Local<Value> value = args[0];
     Isolate* isolate = args.GetIsolate();
-    Encoder* wrapped_encoder = ObjectWrap::Unwrap<Encoder>(args.Holder());
+    Encoder* encoder = ObjectWrap::Unwrap<Encoder>(args.Holder());
 
-    WriteValue(isolate, wrapped_encoder->encoder, value);
+    encoder->SetCurrentHolder(args.Holder());
 
-    bo_encoder_finish(wrapped_encoder->encoder);
+    WriteValue(isolate, encoder, value);
 
-    size_t byte_length = wrapped_encoder->encoder->total_byte_length;
+    encoder->Finish();
+
+    size_t byte_length = encoder->Length();
     char* buffer = (char*) malloc(byte_length);
 
-    memcpy(buffer, wrapped_encoder->encoder->final_buffer, byte_length);
+    encoder->CopyContents(buffer);
 
     Local<Object> result = node::Buffer::Copy(isolate, buffer, byte_length).ToLocalChecked();
     args.GetReturnValue().Set(result);

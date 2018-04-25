@@ -7,13 +7,6 @@
 
 using namespace v8;
 
-int WriteNumber(bo_encoder* encoder, double number);
-void WriteNumber(Isolate* isolate, bo_encoder* encoder, double number);
-void WriteNumber(Isolate* isolate, bo_encoder* encoder, Local<Number> value);
-
-void WriteValue(Isolate* isolate, bo_encoder* encoder, Local<Value> value);
-void WriteObject(Isolate* isolate, bo_encoder* encoder, Local<Object> object);
-
 class Encoder : public node::ObjectWrap {
 private:
     bo_encoder* encoder;
@@ -44,5 +37,14 @@ public:
     void WriteInt32LE(int32_t n);
     void PushBuffer(size_t string_length, uint8_t* buffer);
 };
+
+int WriteNumber(Encoder* encoder, double number);
+void WriteNumber(Isolate* isolate, Encoder* encoder, double number);
+void WriteNumber(Isolate* isolate, Encoder* encoder, Local<Number> value);
+
+void WriteValue(Isolate* isolate, Encoder* encoder, Local<Value> value);
+void WriteObject(Isolate* isolate, Encoder* encoder, Local<Object> object);
+
+bool CheckCustomType(Isolate* isolate, Encoder* encoder, Local<Value> value);
 
 #endif
