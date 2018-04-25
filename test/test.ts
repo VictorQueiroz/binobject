@@ -34,22 +34,9 @@ export default function() {
 
         	buffer = new ObjectEncoder().encode(sourceObject);
 
-            const decoder: any = new ObjectDecoder(buffer);
+            const decoder = new ObjectDecoder(buffer);
 
-            assert.deepEqual(decoder.readUInt8(), PropertyType.Object);
-            assert.deepEqual(decoder.readNumber(), 1);
-
-            assert.deepEqual(decoder.readBytes(decoder.readNumber()).toString('utf8'), 'user');
-            assert.deepEqual(decoder.readUInt8(), PropertyType.Object); // property type
-            assert.deepEqual(decoder.readNumber(), 2); // properties length
-            
-            assert.deepEqual(decoder.readBytes(decoder.readNumber()).toString('utf8'), 'name'); // first property name
-            assert.deepEqual(decoder.decodeValue(), 'Danny Rayburn');
-
-            assert.deepEqual(decoder.readBytes(decoder.readNumber()).toString('utf8'), 'createdAt'); // second property name
-            assert.deepEqual(decoder.decodeValue(), new Date('2018-04-17T21:36:54.033Z'));
-
-            assert.ok(decoder.eof());
+            assert.deepEqual(decoder.decode(), sourceObject);
         },
 
         'it should throw when tries to access beyond buffer length': function() {
