@@ -110,7 +110,7 @@ Local<Value> ReadValue(Isolate* isolate, bo_decoder* decoder) {
         Local<Object> result = Object::New(isolate);
         ReadObject(isolate, decoder, result);
 
-        return Local<Value>::Cast(result);
+        return result;
     } else if(type == BO::String){
         int string_length = ReadNumber(isolate, decoder);
         uint8_t* buffer = (uint8_t*) malloc(string_length);
