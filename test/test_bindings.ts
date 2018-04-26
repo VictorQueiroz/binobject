@@ -37,7 +37,7 @@ class UserProcessor extends bo.CustomTypeProcessor<User> {
         const nameLength = buffer.readUInt32LE(offset);
         offset += 4;
 
-        const name = buffer.slice(offset, offset + nameLength).toString('hex');
+        const name = buffer.slice(offset, offset + nameLength).toString('utf8');
 
         return new User(id, name);
     }
