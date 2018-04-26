@@ -17,8 +17,10 @@ export class ObjectDecoder {
 
         if(type == PropertyType.Object)
             return this.decodeObject();
+        else if(type == PropertyType.Array)
+            return this.decodeArray();
 
-        throw new Error('Invalid initial message: ' + PropertyType[type]);
+        throw new Error(`Invalid initial message: ${PropertyType[type]} || ${type}`);
     }
 
     private readBytes(byteLength: number): Buffer {
@@ -110,7 +112,7 @@ export class ObjectDecoder {
         else if(type == PropertyType.UInt32)
             return this.readUInt32LE();
 
-        throw new Error('Invalid integer type: ' + PropertyType[type]);
+        throw new Error(`Invalid integer type: ${PropertyType[type]} || ${type}`);
     }
 
     public eof() {
@@ -129,6 +131,14 @@ export class ObjectDecoder {
             const propertyName = this.readString();
             result[propertyName] = this.decodeValue();
         }
+
+        return result;
+    }
+
+    private readDouble(): number {
+        const result = this.buffer.readDoubleLE(this.offset);
+
+        this.offset += 8;
 
         return result;
     }
@@ -174,7 +184,7 @@ export class ObjectDecoder {
         else if(type == PropertyType.String)
             return this.readBytes(this.readNumber()).toString('utf8');
         else if(type == PropertyType.Date)
-            return new Date(this.readBytes(this.readNumber()).toString('utf8'));
+            return new Date(this.readDouble());
         else if(type == PropertyType.Boolean)
             return this.readUInt8() == 1 ? true : false;
         else if(type == PropertyType.Array)

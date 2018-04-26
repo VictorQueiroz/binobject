@@ -2,8 +2,8 @@ import { CustomInstruction } from './custom-types';
 import { PropertyType } from './constants';
 
 export class ObjectEncoder {
-    buffers: Buffer[];
-    custom?: CustomInstruction<any>[];
+    private buffers: Buffer[];
+    private custom?: CustomInstruction<any>[];
 
     constructor(custom?: CustomInstruction<any>[]) {
         this.buffers = [];
@@ -22,7 +22,7 @@ export class ObjectEncoder {
 
     private encodeInteger(byteLength: number, value: number, unsigned: boolean) {
         let type: PropertyType;
-        const buffer: Buffer = Buffer.alloc(1 + byteLength);
+        const buffer: Buffer = Buffer.allocUnsafe(1 + byteLength);
 
         if(byteLength == 1)
             type = unsigned ? PropertyType.UInt8 : PropertyType.Int8;
@@ -91,7 +91,7 @@ export class ObjectEncoder {
     }
 
     private writeUInt8(value: number) {
-        const buffer = Buffer.alloc(1);
+        const buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(value, 0);
         this.buffers.push(buffer);
     }
@@ -122,6 +122,13 @@ export class ObjectEncoder {
         this.buffers.push(output);
     }
 
+    writeDouble(number: number) {
+        const buffer = Buffer.allocUnsafe(8);
+
+        buffer.writeDoubleLE(number, 0);
+        this.buffers.push(buffer);
+    }
+
     private encodeValue(value: any) {
         if(value == null){
             this.writeUInt8(PropertyType.Null);
@@ -133,7 +140,7 @@ export class ObjectEncoder {
             this.encodeNativeMap(value);
         } else if(value instanceof Date) {
             this.writeUInt8(PropertyType.Date);
-            this.writeString(value.toJSON());
+            this.writeDouble(value.getTime());
         } else if(typeof value == 'string') {
             this.writeUInt8(PropertyType.String);
             this.writeString(value);
