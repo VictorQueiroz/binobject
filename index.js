@@ -1,6 +1,6 @@
 const bo = require('bindings')('binobject');
 
-class CustomTypeProcessor() {
+class CustomTypeProcessor {
 
 }
 
