@@ -16,10 +16,10 @@ run_tester: build_tester
 
 build_tester:
 	cc \
-		-g -Isrc/addon \
-		src/addon/encoder.c \
-		src/addon/ieee754.c \
-		src/addon/decoder.c \
+		-g -Isrc \
+		src/encoder.c \
+		src/ieee754.c \
+		src/decoder.c \
 		test/test.c -lm \
 		-o build/test
 	
