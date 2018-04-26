@@ -106,6 +106,16 @@ export default function() {
             assert.deepEqual(decoded, {
                 users: [new User(1, 'victor'), new User(2, 'gallins')]
             });
+        },
+
+        'it should support special characters': function() {
+            assert.deepEqual(new bo.ObjectDecoder(new bo.ObjectEncoder().encode({ name: 'Cristóvão Galvão' })).decode(), {
+                name: 'Cristóvão Galvão'
+            });
+
+            assert.deepEqual(new bo.ObjectDecoder(new bo.ObjectEncoder().encode({ specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ' })).decode(), {
+                specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ'
+            });
         }
     };
 }

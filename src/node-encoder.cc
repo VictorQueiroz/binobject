@@ -98,7 +98,7 @@ size_t Encoder::Length() {
 }
 
 void WriteString(Isolate* isolate, Encoder* encoder, Local<String> value) {
-    int string_length = value->Utf8Length();
+    int string_length = value->Length();
     uint8_t* buffer = (uint8_t*) malloc(string_length + 1);
     value->WriteOneByte(buffer);
 
