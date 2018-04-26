@@ -21,6 +21,16 @@ uint8_t CustomType::Validate(Isolate* isolate, Local<Object> processor, Local<Va
     return result->ToBoolean(context).ToLocalChecked()->Value() == true ? 1 : 0;
 }
 
+Local<Value> CustomType::Decode(Isolate* isolate, size_t byte_length, uint8_t* input_buffer, Local<Object> processor) {
+    const char* buffer = (char*) input_buffer;
+    Local<Context> context = isolate->GetCallingContext();
+    Local<Function> decodeFunction = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "decode")));
+    Local<Object> nodejs_buffer = node::Buffer::Copy(isolate, buffer, byte_length).ToLocalChecked();
+    Local<Value> args[1] = { nodejs_buffer };
+
+    return decodeFunction->Call(context, processor, 1, args).ToLocalChecked();
+}
+
 uint8_t CustomType::Encode(Isolate* isolate, Local<Object> processor, Local<Value> value, uint8_t** result, size_t* byte_length) {
     Local<Value> args[1] = { value };
     Local<Context> context = isolate->GetCallingContext();
