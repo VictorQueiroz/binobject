@@ -42,7 +42,9 @@ uint8_t CustomType::Encode(Isolate* isolate, Local<Object> processor, Local<Valu
         return 1;
     }
 
-    size_t buffer_length = node::Buffer::Length(buffer);
+    *byte_length = node::Buffer::Length(buffer);
+
+    size_t buffer_length = *byte_length;
     *result = (uint8_t*)malloc(buffer_length);
 
     memcpy(*result, node::Buffer::Data(buffer), buffer_length);
