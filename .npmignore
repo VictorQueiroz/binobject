@@ -1,3 +1,4 @@
-browser/
-test/
 lib/
+test/
+build/
+browser/
