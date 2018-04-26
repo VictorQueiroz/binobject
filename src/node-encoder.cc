@@ -193,6 +193,9 @@ bool CheckCustomType(Isolate* isolate, Encoder* encoder, Local<Value> value) {
         if(CustomType::Encode(isolate, processor, value, &result, &buffer_length) != 0)
             return true;
 
+        uint8_t type = Local<Number>::Cast(instruction->Get(String::NewFromUtf8(isolate, "value")))->Value();
+
+        encoder->WriteUInt8(type);
         WriteNumber(isolate, encoder, buffer_length);
         encoder->PushBuffer(buffer_length, result);
         return true;
