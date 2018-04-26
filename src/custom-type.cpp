@@ -34,8 +34,8 @@ Local<Value> CustomType::Decode(Isolate* isolate, size_t byte_length, uint8_t* i
 uint8_t CustomType::Encode(Isolate* isolate, Local<Object> processor, Local<Value> value, uint8_t** result, size_t* byte_length) {
     Local<Value> args[1] = { value };
     Local<Context> context = isolate->GetCallingContext();
-    Local<Function> encoderFunction = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "encode")));
-    Local<Value> buffer = encoderFunction->Call(context, processor, 1, args).ToLocalChecked();
+    Local<Function> encodeFunction = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "encode")));
+    Local<Value> buffer = encodeFunction->Call(context, processor, 1, args).ToLocalChecked();
 
     if(!buffer->IsTypedArray()){
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Result from encoder method must be an typed array")));
