@@ -80,9 +80,9 @@ export default function() {
                 map.set(i, randomBytes(128));
             }
 
-            map.set('(', ')');
-            map.set(Buffer.from('key 1', 'utf8'), 'value 1');
-            map.set(Buffer.from('key 2', 'utf8'), 'value 2');
+            map.set('(', Buffer.from(')', 'utf8'));
+            map.set(Buffer.from('key 1', 'utf8'), Buffer.from('value 1', 'utf8'));
+            map.set(Buffer.from('key 2', 'utf8'), Buffer.from('value 2', 'utf8'));
 
             assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({
                 mapsList: [map]
