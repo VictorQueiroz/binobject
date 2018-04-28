@@ -142,6 +142,16 @@ export default function() {
 
             assert.ok(decoded.user._id instanceof ObjectID);
             assert.ok(decoded.user._id.equals(user._id));
+        },
+
+        'it should support special characters': function() {
+            assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({ name: 'Cristóvão Galvão' })).decode(), {
+                name: 'Cristóvão Galvão'
+            });
+
+            assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({ specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ' })).decode(), {
+                specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ'
+            });
         }
     };
 }
