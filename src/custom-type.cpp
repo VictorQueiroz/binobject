@@ -6,39 +6,38 @@
  * 1 - true
  * 2 - invalid result
  */
-uint8_t CustomType::Validate(Isolate* isolate, Local<Object> processor, Local<Value> value) {
+uint8_t CustomType::Validate(Local<Object> processor, Local<Value> value) {
     Local<Value> args[1] = { value };
-    Local<Context> context = isolate->GetCallingContext();
-    Local<Function> validate = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "validate")));
+    Local<Context> context = Nan::GetCurrentContext();
+    Local<Function> validate = Local<Function>::Cast(processor->Get(Nan::New("validate").ToLocalChecked()));
 
     Local<Value> result = validate->Call(context, processor, 1, args).ToLocalChecked();
 
     if(!result->IsBoolean()){
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Result of validation function must be boolean")));
+        Nan::ThrowError("Result of validation function must be boolean");
         return 2;
     }
 
     return result->ToBoolean(context).ToLocalChecked()->Value() == true ? 1 : 0;
 }
 
-Local<Value> CustomType::Decode(Isolate* isolate, size_t byte_length, uint8_t* input_buffer, Local<Object> processor) {
-    const char* buffer = (char*) input_buffer;
-    Local<Context> context = isolate->GetCallingContext();
-    Local<Function> decodeFunction = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "decode")));
-    Local<Object> nodejs_buffer = node::Buffer::Copy(isolate, buffer, byte_length).ToLocalChecked();
+Local<Value> CustomType::Decode(size_t byte_length, uint8_t* input_buffer, Local<Object> processor) {
+    Local<Context> context = Nan::GetCurrentContext();
+    Local<Function> decodeFunction = Local<Function>::Cast(processor->Get(Nan::New("decode").ToLocalChecked()));
+    Local<Object> nodejs_buffer = Nan::NewBuffer((char*) input_buffer, byte_length).ToLocalChecked();
     Local<Value> args[1] = { nodejs_buffer };
 
     return decodeFunction->Call(context, processor, 1, args).ToLocalChecked();
 }
 
-uint8_t CustomType::Encode(Isolate* isolate, Local<Object> processor, Local<Value> value, uint8_t** result, size_t* byte_length) {
+uint8_t CustomType::Encode(Local<Object> processor, Local<Value> value, uint8_t** result, size_t* byte_length) {
     Local<Value> args[1] = { value };
-    Local<Context> context = isolate->GetCallingContext();
-    Local<Function> encodeFunction = Local<Function>::Cast(processor->Get(String::NewFromUtf8(isolate, "encode")));
+    Local<Context> context = Nan::GetCurrentContext();
+    Local<Function> encodeFunction = Local<Function>::Cast(processor->Get(Nan::New("encode").ToLocalChecked()));
     Local<Value> buffer = encodeFunction->Call(context, processor, 1, args).ToLocalChecked();
 
     if(!buffer->IsTypedArray()){
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Result from encoder method must be an typed array")));
+        Nan::ThrowError("Result from encoder method must be an typed array");
         return 1;
     }
 

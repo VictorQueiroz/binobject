@@ -1,25 +1,22 @@
-#include <node.h>
+#include <nan.h>
 #include "decoder.h"
-#include <node_object_wrap.h>
 
 #ifndef NODE_DECODER_H_
 #define NODE_DECODER_H_
 
 using namespace v8;
 
-class Decoder : public node::ObjectWrap {
+class Decoder : public Nan::ObjectWrap {
 private:
     bo_decoder* decoder;
     Local<Object> current_holder;
     Decoder(size_t byte_length, uint8_t* buffer);
     ~Decoder();
-    static Persistent<Function> constructor;
-    static void Decode(const FunctionCallbackInfo<Value>& args);
-    static void New(const FunctionCallbackInfo<Value>& args);
+    static Nan::Persistent<Function> constructor;
+    static void Decode(const Nan::FunctionCallbackInfo<Value>& args);
+    static void New(const Nan::FunctionCallbackInfo<Value>& args);
 public:
-    static void Init(Isolate* isolate);
-    static void NewInstance(const FunctionCallbackInfo<Value>& args);
-    static void CreateObject(const FunctionCallbackInfo<Value>& args);
+    static void Init(Local<Object> exports);
     void SetCurrentHolder(Local<Object> holder);
     Local<Object> GetCurrentHolder();
 
@@ -33,6 +30,9 @@ public:
     void ReadBytes(size_t length, uint8_t* buffer);
 };
 
-Local<Value> ReadValue(Isolate* isolate, Decoder* decoder);
+Local<Value> ReadArray(Decoder* decoder);
+Local<Value> ReadValue(Decoder* decoder);
+void ReadObject(Decoder* decoder, Local<Object> result);
+Local<Value> ReadMapNative(Decoder* decoder);
 
 #endif
