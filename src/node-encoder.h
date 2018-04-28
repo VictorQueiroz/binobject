@@ -7,7 +7,7 @@
 
 using namespace v8;
 
-class Encoder : public node::ObjectWrap {
+class Encoder : public Nan::ObjectWrap {
 private:
     bo_encoder* encoder;
     Encoder();
