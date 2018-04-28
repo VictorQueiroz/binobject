@@ -1,7 +1,10 @@
 test:
 	./node_modules/.bin/sarg \
 		--require=ts-node/register \
-		--bail test/*.ts
+		--bail test/test.ts && ./node_modules/.bin/sarg \
+		--require=ts-node/register \
+		--bail \
+		test/test_bindings.ts
 
 valgrind: build_tester
 	valgrind \
