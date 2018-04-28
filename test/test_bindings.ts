@@ -85,7 +85,7 @@ export default function() {
 
         'it should throw when receive an invalid instructions': function() {
             assert.throws(function() {
-                new bo.ObjectEncoder(null);
+                new bo.ObjectEncoder(<any>{});
             });
         },
 
