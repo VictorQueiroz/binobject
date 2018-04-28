@@ -2,12 +2,7 @@ import * as fs from 'fs';
 import * as assert from 'assert';
 import { ObjectID } from 'bson';
 import { randomBytes } from 'crypto';
-import { ObjectEncoder, CustomTypeProcessor, ObjectDecoder, PropertyType } from '../src';
-
-function createArrayBuffer(content: string, encoding: string): ArrayBuffer {
-    const buffer = Buffer.from(content, encoding);
-    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-}
+import { ObjectEncoder, CustomTypeProcessor, ObjectDecoder } from '../lib';
 
 class ProcessorObjectID extends CustomTypeProcessor<ObjectID> {
     validate(id: any): boolean {
@@ -85,9 +80,9 @@ export default function() {
                 map.set(i, randomBytes(128));
             }
 
-            map.set('(', ')');
-            map.set(Buffer.from('key 1', 'utf8'), 'value 1');
-            map.set(Buffer.from('key 2', 'utf8'), 'value 2');
+            map.set('(', Buffer.from(')', 'utf8'));
+            map.set(Buffer.from('key 1', 'utf8'), Buffer.from('value 1', 'utf8'));
+            map.set(Buffer.from('key 2', 'utf8'), Buffer.from('value 2', 'utf8'));
 
             assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({
                 mapsList: [map]
@@ -96,7 +91,7 @@ export default function() {
 
         'it should support all kinds of buffers': function() {
             const source = {
-                nativeArrayBuffer: createArrayBuffer('simple text for array buffer', 'utf8'),
+                nativeArrayBuffer: Buffer.from('simple text for array buffer', 'utf8'),
                 bytes: randomBytes(256)
             };
 
@@ -147,6 +142,16 @@ export default function() {
 
             assert.ok(decoded.user._id instanceof ObjectID);
             assert.ok(decoded.user._id.equals(user._id));
+        },
+
+        'it should support special characters': function() {
+            assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({ name: 'Cristóvão Galvão' })).decode(), {
+                name: 'Cristóvão Galvão'
+            });
+
+            assert.deepEqual(new ObjectDecoder(new ObjectEncoder().encode({ specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ' })).decode(), {
+                specialText: '¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ'
+            });
         }
     };
 }

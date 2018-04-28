@@ -1,28 +1,27 @@
-#include <node.h>
-#include "encoder.h"
-#include <node_object_wrap.h>
-
 #ifndef NODE_ENCODER_H_
 #define NODE_ENCODER_H_
 
+#include <nan.h>
+#include "encoder.h"
+
 using namespace v8;
 
-class Encoder : public node::ObjectWrap {
+class Encoder : public Nan::ObjectWrap {
 private:
     bo_encoder* encoder;
     Encoder();
     ~Encoder();
     void Finish();
     size_t Length();
-    static Persistent<Function> constructor;
-    static void New(const FunctionCallbackInfo<Value>& args);
-    static void Encode(const FunctionCallbackInfo<Value>& args);
+    static Nan::Persistent<Function> constructor;
+    static void New(const Nan::FunctionCallbackInfo<Value>& args);
+    static void Encode(const Nan::FunctionCallbackInfo<Value>& args);
     Local<Object> holder;
 
 public:
-    static void Init(Isolate* isolate);
-    static void NewInstance(const FunctionCallbackInfo<Value>& args);
-    static void CreateObject(const FunctionCallbackInfo<Value>& args);
+    static void Init(Local<Object> exports);
+    static void NewInstance(const Nan::FunctionCallbackInfo<Value>& args);
+    static void CreateObject(const Nan::FunctionCallbackInfo<Value>& args);
 
     void SetCurrentHolder(Local<Object> holder);
     Local<Object> GetHolder();
@@ -38,13 +37,12 @@ public:
     void PushBuffer(size_t string_length, uint8_t* buffer);
 };
 
-int WriteNumber(Encoder* encoder, double number);
-void WriteNumber(Isolate* isolate, Encoder* encoder, double number);
-void WriteNumber(Isolate* isolate, Encoder* encoder, Local<Number> value);
+void WriteNumber(Encoder* encoder, double number);
+void WriteNumber(Encoder* encoder, Local<Number> value);
 
-void WriteValue(Isolate* isolate, Encoder* encoder, Local<Value> value);
-void WriteObject(Isolate* isolate, Encoder* encoder, Local<Object> object);
+void WriteValue(Encoder* encoder, Local<Value> value);
+void WriteObject(Encoder* encoder, Local<Object> object);
 
-bool CheckCustomType(Isolate* isolate, Encoder* encoder, Local<Value> value);
+bool CheckCustomType(Encoder* encoder, Local<Value> value);
 
 #endif

@@ -85,7 +85,7 @@ export default function() {
 
         'it should throw when receive an invalid instructions': function() {
             assert.throws(function() {
-                new bo.ObjectEncoder(null);
+                new bo.ObjectEncoder(<any>{});
             });
         },
 
@@ -99,7 +99,7 @@ export default function() {
                 users: [new User(1, 'victor'), new User(2, 'gallins')]
             });
 
-            const decoded = new bo.ObjectDecoder(buffer, instructions).decode();
+            const decoded: { users: any[] } = new bo.ObjectDecoder(buffer, instructions).decode();
 
             decoded.users.map(user => assert.ok(user instanceof User, 'all results inside `users` property should be equal to `User` instance'));
 
