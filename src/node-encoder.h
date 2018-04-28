@@ -1,10 +1,8 @@
-#include <node.h>
-#include "encoder.h"
-#include <node_object_wrap.h>
-
 #ifndef NODE_ENCODER_H_
 #define NODE_ENCODER_H_
 
+#include <nan.h>
+#include "encoder.h"
 using namespace v8;
 
 class Encoder : public Nan::ObjectWrap {
