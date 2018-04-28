@@ -4,11 +4,6 @@ import { ObjectID } from 'bson';
 import { randomBytes } from 'crypto';
 import { ObjectEncoder, CustomTypeProcessor, ObjectDecoder, PropertyType } from '../src';
 
-function createArrayBuffer(content: string, encoding: string): ArrayBuffer {
-    const buffer = Buffer.from(content, encoding);
-    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-}
-
 class ProcessorObjectID extends CustomTypeProcessor<ObjectID> {
     validate(id: any): boolean {
         return id instanceof ObjectID == true;
@@ -96,7 +91,7 @@ export default function() {
 
         'it should support all kinds of buffers': function() {
             const source = {
-                nativeArrayBuffer: createArrayBuffer('simple text for array buffer', 'utf8'),
+                nativeArrayBuffer: Buffer.from('simple text for array buffer', 'utf8'),
                 bytes: randomBytes(256)
             };
 
