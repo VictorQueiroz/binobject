@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as assert from 'assert';
 import { ObjectID } from 'bson';
 import { randomBytes } from 'crypto';
-import { ObjectEncoder, CustomTypeProcessor, ObjectDecoder, PropertyType } from '../src';
+import { ObjectEncoder, CustomTypeProcessor, ObjectDecoder } from '../lib';
 
 class ProcessorObjectID extends CustomTypeProcessor<ObjectID> {
     validate(id: any): boolean {
