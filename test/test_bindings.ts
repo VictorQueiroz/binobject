@@ -45,6 +45,15 @@ class UserProcessor extends bo.CustomTypeProcessor<User> {
     }
 }
 
+test('it should encode NaN numbers into null', function() {
+    const buffer = new bo.ObjectEncoder().encode({
+        object: { value: NaN }
+    });
+    assert.deepEqual(new bo.ObjectDecoder(buffer).decode(), {
+        object: { value: null }
+    })
+});
+
 test('it should encode complex object', function() {
     const buffer = new bo.ObjectEncoder().encode(require('./test.json'));
     assert.deepEqual(new bo.ObjectDecoder(buffer).decode(), require('./test.json'));

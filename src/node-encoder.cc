@@ -133,7 +133,12 @@ void WriteNumber(Encoder* encoder, double number) {
 }
 
 void WriteNumber(Encoder* encoder, Local<Number> value) {
-    WriteNumber(encoder, value->Value());
+    double number = value->Value();
+    if(isnan(number)) {
+        encoder->WriteUInt8(BO::Null);
+        return;
+    }
+    WriteNumber(encoder, number);
 }
 
 void WriteArray(Encoder* encoder, Local<Array> array) {

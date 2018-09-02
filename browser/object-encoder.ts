@@ -74,6 +74,10 @@ export class ObjectEncoder {
     }
 
     private encodeNumber(value: number) {
+        if(isNaN(value)) {
+            this.writeUInt8(PropertyType.Null);
+            return;
+        }
         if(value >= -0x80 && value <= 0x7f)
             this.encodeInteger(1, value, false);
         else if(value >= 0 && value <= 0xff)

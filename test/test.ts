@@ -17,6 +17,16 @@ class ProcessorObjectID extends CustomTypeProcessor<ObjectID> {
     }
 }
 
+test('it should encode NaN as null', function() {
+    const buffer = new ObjectEncoder().encode({
+        object: { value: NaN }
+    });
+    const decoder = new ObjectDecoder(buffer);
+
+    assert.deepEqual(decoder.decode(), {
+        object: { value: null }        
+    });
+});
 
 test('it should support date field objects', function() {
     let buffer: Buffer;
