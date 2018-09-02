@@ -3,7 +3,7 @@
     "@types/bson": "^1.0.8",
     "@types/node": "^9.6.5",
     "bson": "^2.0.5",
-    "sarg": "^1.1.1",
+    "sarg": "^2.0.10",
     "ts-node": "^6.0.1",
     "typescript": "^2.8.3"
   },
