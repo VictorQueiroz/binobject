@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/node_modules/nan",
-                "${NODE_PATH}"
+                "${env:NODE_PATH}/include/node"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
