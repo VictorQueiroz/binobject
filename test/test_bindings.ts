@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { test } from 'sarg';
 import { randomBytes } from 'crypto';
+import { expect } from 'chai';
 
 const bo = require('../');
 
@@ -45,24 +46,38 @@ class UserProcessor extends bo.CustomTypeProcessor<User> {
     }
 }
 
-test('it should encode NaN numbers into null', function() {
+test('it should encode NaN numbers into NaN', function() {
     const buffer = new bo.ObjectEncoder().encode({
         object: { value: NaN }
     });
-    assert.deepEqual(new bo.ObjectDecoder(buffer).decode(), {
-        object: { value: null }
-    })
+    expect(new bo.ObjectDecoder(buffer).decode()).to.be.deep.equal({
+        object: { value: NaN }
+    });
+});
+
+test('it should encode very big numbers', () => {
+    const expected = {
+        value: Number.MAX_SAFE_INTEGER
+    };
+    const buffer = new bo.ObjectEncoder().encode(expected);
+    const decoded = new bo.ObjectDecoder(buffer).decode();
+    expect(decoded).to.be.deep.equal(expected);
 });
 
 test('it should encode complex object', function() {
     const buffer = new bo.ObjectEncoder().encode(require('./test.json'));
-    assert.deepEqual(new bo.ObjectDecoder(buffer).decode(), require('./test.json'));
+    const decoded = new bo.ObjectDecoder(buffer).decode();
+    expect(require('./test.json')).to.be.deep.equal(require('./test.json'));
+    expect(decoded).to.be.deep.equal(require('./test.json'));
 });
 
 test('it should encode native boolean parameters', function() {
     const buffer = new bo.ObjectEncoder().encode({ wellTested: true, badTested: false });
 
-    assert.deepEqual(new bo.ObjectDecoder(buffer).decode(), { wellTested: true, badTested: false });
+    expect(new bo.ObjectDecoder(buffer).decode()).to.be.deep.equal({
+        wellTested: true,
+        badTested: false
+    });
 });
 
 test('it should encode undefined', function() {
@@ -81,18 +96,20 @@ test('it should encode buffer value', function() {
         id
     })).decode();
 
-    assert.deepEqual(decoded, { id });
+    assert.deepEqual(decoded, {
+        id
+    });
 });
 
 test('it should encode date objects', function() {
-    const date = new Date();
+    const date = new Date("2019-04-08T04:29:22.810Z");
 
     assert.deepEqual(new bo.ObjectDecoder(new bo.ObjectEncoder().encode([{ createdAt: date }])).decode(), [{
         createdAt: date
     }]);
 });
 
-test('it should throw when receive an invalid instructions', function() {
+test('it should throw when receive invalid instructions argument', function() {
     assert.throws(function() {
         new bo.ObjectEncoder(<any>{});
     });
@@ -114,6 +131,30 @@ test('it should encode objects with custom types', function() {
 
     assert.deepEqual(decoded, {
         users: [new User(1, 'victor'), new User(2, 'gallins')]
+    });
+});
+
+test('it should support fractions', function() {
+    const buffer = new bo.ObjectEncoder().encode({
+        value: 1.79769e+308
+    });
+    expect(new bo.ObjectDecoder(buffer).decode()).to.be.deep.equal({
+        value: 1.79769e+308
+    });
+});
+
+test('it should support Map<K, V>', function() {
+    const encoder = new bo.ObjectEncoder();
+    const usersMap = new Map<number, User>();
+    usersMap.set(1, new User(1, 'user 1'));
+    usersMap.set(2, new User(2, 'user 2'));
+    usersMap.set(3, new User(3, 'user 3'));
+    usersMap.set(4, new User(4, 'user 3'));
+    const buffer = encoder.encode({
+        usersMap
+    });
+    expect(new bo.ObjectDecoder(buffer).decode()).to.be.deep.equal({
+        usersMap
     });
 });
 
