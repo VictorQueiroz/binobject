@@ -13,8 +13,8 @@ private:
     Decoder(size_t byte_length, uint8_t* buffer);
     ~Decoder();
     static Nan::Persistent<Function> constructor;
-    static void Decode(const Nan::FunctionCallbackInfo<Value>& args);
-    static void New(const Nan::FunctionCallbackInfo<Value>& args);
+    static NAN_METHOD(Decode);
+    static NAN_METHOD(New);
 public:
     static void Init(Local<Object> exports);
     void SetCurrentHolder(Local<Object> holder);

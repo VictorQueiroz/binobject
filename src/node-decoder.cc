@@ -225,20 +225,19 @@ Local<Object> Decoder::GetCurrentHolder() {
     return current_holder;
 }
 
-void Decoder::Decode(const Nan::FunctionCallbackInfo<Value>& args) {
-    Isolate* isolate = args.GetIsolate();
-    Decoder* decoder = ObjectWrap::Unwrap<Decoder>(args.Holder());
+NAN_METHOD(Decoder::Decode) {
+    Decoder* decoder = ObjectWrap::Unwrap<Decoder>(info.Holder());
 
-    decoder->SetCurrentHolder(args.Holder());
+    decoder->SetCurrentHolder(info.Holder());
 
     Local<Value> result = ReadValue(decoder);
 
-    args.GetReturnValue().Set(result);
+    info.GetReturnValue().Set(result);
 }
 
-void Decoder::New(const Nan::FunctionCallbackInfo<Value>& args) {
-    Local<Object> instance = args.This();
-    Local<Value> value = args[0];
+NAN_METHOD(Decoder::New) {
+    Local<Object> instance = info.This();
+    Local<Value> value = info[0];
 
     if(value->IsUndefined()){
         Nan::ThrowError("Expected buffer but got undefined instead");
@@ -248,12 +247,12 @@ void Decoder::New(const Nan::FunctionCallbackInfo<Value>& args) {
     size_t byte_length = node::Buffer::Length(value);
     uint8_t* buffer = (uint8_t*) node::Buffer::Data(value);
 
-    instance->Set(Nan::New("instructions").ToLocalChecked(), args[1]);
+    instance->Set(Nan::New("instructions").ToLocalChecked(), info[1]);
 
     Decoder* decoder = new Decoder(byte_length, buffer);
     decoder->Wrap(instance);
 
-    args.GetReturnValue().Set(instance);
+    info.GetReturnValue().Set(instance);
 }
 
 void Decoder::Init(Local<Object> exports) {
