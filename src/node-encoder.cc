@@ -109,15 +109,15 @@ void WriteString(Encoder* encoder, Local<String> value) {
 void WriteCompressedNumber(Encoder* encoder, double number) {
     int result;
 
-    if((number >= -0x80) && (number <= 0x7f))
+    if((number >= -0x80) && number <= 0x7f)
         result = WriteInteger(encoder, 1, number, false);
-    else if((number >= 0) && (number <= 0xff))
+    else if((number >= 0) && number <= 0xff)
         result = WriteInteger(encoder, 1, number, true);
-    else if(number >= -0x8000 && number <= 0x7fff)
+    else if((number >= -0x8000) && number <= 0x7fff)
         result = WriteInteger(encoder, 2, number, false);
     else if((number >= 0) && number <= 0xffff)
         result = WriteInteger(encoder, 2, number, true);
-    else if(number >= -0x80000000 && number <= 0x7fffffff)
+    else if((number >= -0x80000000) && number <= 0x7fffffff)
         result = WriteInteger(encoder, 4, number, false);
     else if((number >= 0) && number <= 0xffffffff)
         result = WriteInteger(encoder, 4, number, true);
