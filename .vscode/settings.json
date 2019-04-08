@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "serializer.h": "c",
+        "cfloat": "cpp",
+        "system_error": "cpp",
+        "type_traits": "cpp",
+        "array": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
+    }
+}
