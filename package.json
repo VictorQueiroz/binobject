@@ -1,11 +1,16 @@
 {
   "devDependencies": {
     "@types/bson": "^1.0.8",
+    "@types/chai": "^4.1.7",
     "@types/node": "^9.6.5",
     "bson": "^2.0.5",
+    "chai": "^4.2.0",
     "sarg": "^2.0.10",
     "ts-node": "^6.0.1",
     "typescript": "^2.8.3"
+  },
+  "scripts": {
+    "install": "npx cmake-js compile"
   },
   "homepage": "https://github.com/VictorQueiroz/binobject#readme",
   "bugs": {
@@ -28,7 +33,8 @@
   "main": "./index.js",
   "typings": "./lib/index.d.ts",
   "dependencies": {
-    "bindings": "^1.3.0",
-    "nan": "^2.10.0"
+    "bindings": "^1.5.0",
+    "cmake-js": "^5.1.1",
+    "nan": "^2.13.2"
   }
 }
