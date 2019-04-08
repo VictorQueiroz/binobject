@@ -1,51 +1,71 @@
-#include <nan.h>
-#include "decoder.h"
 #include "custom-type.h"
 #include "node-decoder.h"
 #include "node-binobject.h"
+
+#include <nan.h>
 
 using namespace v8;
 
 Nan::Persistent<Function> Decoder::constructor;
 
 Decoder::Decoder(size_t byte_length, uint8_t* buffer) {
-    bo_decoder_init(&decoder, byte_length, buffer);
+    mff_deserializer_init(&decoder, buffer, byte_length);
 }
 
 Decoder::~Decoder() {
-    destroy_decoder(decoder);
+    mff_deserializer_destroy(decoder);
 }
 
 uint8_t Decoder::ReadUInt8() {
-    return read_uint8(decoder);
+    uint8_t n = 0;
+    mff_deserializer_read_uint8(decoder, &n);
+    return n;
 }
 
 int8_t Decoder::ReadInt8() {
-    return read_int8(decoder);
+    int8_t n = 0;
+    mff_deserializer_read_int8(decoder, &n);
+    return n;
 }
 
 uint16_t Decoder::ReadUInt16LE() {
-    return read_uint16_le(decoder);
+    uint16_t n = 0;
+    mff_deserializer_read_uint16(decoder, &n);
+    return n;
 }
 
 int16_t Decoder::ReadInt16LE() {
-    return read_int16_le(decoder);
+    int16_t n = 0;
+    mff_deserializer_read_int16(decoder, &n);
+    return n;
 }
 
 uint32_t Decoder::ReadUInt32LE() {
-    return read_uint32_le(decoder);
+    uint32_t n = 0;
+    mff_deserializer_read_uint32(decoder, &n);
+    return n;
 }
 
 int32_t Decoder::ReadInt32LE() {
-    return read_int32_le(decoder);
+    int32_t n = 0;
+    mff_deserializer_read_int32(decoder, &n);
+    return n;
 }
 
 double Decoder::ReadDoubleLE() {
-    return read_double_le(decoder);
+    double n = 0;
+    mff_deserializer_read_double(decoder, &n);
+    return n;
+}
+
+float Decoder::ReadFloatLE() {
+    float n = 0;
+    mff_deserializer_read_float(decoder, &n);
+    return n;
 }
 
 void Decoder::ReadBytes(size_t length, uint8_t* buffer) {
-    read_bytes(decoder, length, buffer);
+    mff_deserializer_read_buffer(decoder, buffer, length);
 }
 
 Local<Value> ReadNumberAsValue(Decoder* decoder, uint8_t type) {
@@ -62,9 +82,16 @@ Local<Value> ReadNumberAsValue(Decoder* decoder, uint8_t type) {
             return Nan::New<Number>(decoder->ReadUInt32LE());
         case BO::Int32:
             return Nan::New<Number>(decoder->ReadInt32LE());
+        case BO::Float:
+            return Nan::New<Number>(decoder->ReadFloatLE());
+        case BO::Double:
+            return Nan::New<Number>(decoder->ReadDoubleLE());
     }
 
-    Nan::ThrowError("Got invalid integer type");
+    Nan::ThrowError(
+        std::string("Got invalid integer type: " + std::to_string(type)).c_str()
+    );
+    return Nan::Undefined();
 }
 
 double ReadNumber(Decoder* decoder) {
@@ -73,22 +100,25 @@ double ReadNumber(Decoder* decoder) {
 
     switch(type) {
         case BO::UInt8:
-            n += decoder->ReadUInt8();
+            n = decoder->ReadUInt8();
             break;
         case BO::Int8:
-            n += decoder->ReadInt8();
+            n = decoder->ReadInt8();
             break;
         case BO::UInt16:
-            n += decoder->ReadUInt16LE();
+            n = decoder->ReadUInt16LE();
             break;
         case BO::Int16:
-            n += decoder->ReadInt16LE();
+            n = decoder->ReadInt16LE();
             break;
         case BO::UInt32:
-            n += decoder->ReadUInt32LE();
+            n = decoder->ReadUInt32LE();
             break;
         case BO::Int32:
-            n += decoder->ReadInt32LE();
+            n = decoder->ReadInt32LE();
+            break;
+        case BO::Float:
+            n = decoder->ReadFloatLE();
             break;
         default:
             Nan::ThrowError("Got invalid integer type");
@@ -102,7 +132,7 @@ void ReadObject(Decoder* decoder, Local<Object> result) {
 
     for(size_t i = 0; i < properties_length; i++) {
         size_t string_length = ReadNumber(decoder);
-        uint8_t* buffer = (uint8_t*)malloc(string_length);
+        uint8_t buffer[string_length];
 
         decoder->ReadBytes(string_length, buffer);
 
@@ -114,7 +144,7 @@ void ReadObject(Decoder* decoder, Local<Object> result) {
 }
 
 Local<Value> ReadArray(Decoder* decoder) {
-    int array_length = ReadNumber(decoder);
+    double array_length = ReadNumber(decoder);
     Local<Array> list = Nan::New<Array>(array_length);
 
     for(int i = 0; i < array_length; i++)
@@ -156,18 +186,23 @@ bool CheckCustomType(Decoder* decoder, uint8_t type, Local<Object>& processor) {
     return false;
 }
 
+Local<Object> ReadBuffer(Decoder* decoder) {
+    size_t byte_length = ReadNumber(decoder);
+    // Allocation ownership is taken by `Nan::NewBuffer`
+    uint8_t* buffer = (uint8_t*) malloc(byte_length);
+
+    decoder->ReadBytes(byte_length, buffer);
+
+    Local<Object> nodejs_buffer = Nan::NewBuffer((char*) buffer, byte_length).ToLocalChecked();
+
+    return nodejs_buffer;
+}
+
 Local<Value> ReadValue(Decoder* decoder) {
     uint8_t type = decoder->ReadUInt8();
 
     if(type == BO::Buffer) {
-        size_t byte_length = ReadNumber(decoder);
-        uint8_t* buffer = (uint8_t*) malloc(byte_length);
-
-        decoder->ReadBytes(byte_length, buffer);
-
-        Local<Object> nodejs_buffer = Nan::NewBuffer((char*) buffer, byte_length).ToLocalChecked();
-
-        return nodejs_buffer;
+        return ReadBuffer(decoder);
     } else if(type == BO::Boolean) {
         bool value = decoder->ReadUInt8() == 0 ? false : true;
         Local<Boolean> boolean = Nan::New(value);
@@ -183,18 +218,15 @@ Local<Value> ReadValue(Decoder* decoder) {
 
         return result;
     } else if(type == BO::String){
-        int string_length = ReadNumber(decoder);
-        uint8_t* buffer = (uint8_t*) malloc(string_length);
+        uint32_t string_length = ReadNumber(decoder);
+        uint8_t buffer[string_length];
 
         decoder->ReadBytes(string_length, buffer);
 
         Local<String> string = Nan::NewOneByteString(buffer, string_length).ToLocalChecked();
-
-        free(buffer);
         return string;
     } else if(type == BO::Date) {
         double date = decoder->ReadDoubleLE();
-        Local<Context> context = Nan::GetCurrentContext();
 
         return Nan::New<Date>(date).ToLocalChecked();
     } else if(type == BO::Array) {
@@ -214,7 +246,9 @@ Local<Value> ReadValue(Decoder* decoder) {
         }
     }
 
-    return ReadNumberAsValue(decoder, type);
+    Local<Value> v = ReadNumberAsValue(decoder, type);
+    // printf("Number type is %d. Number value is %.6f\n", type, v->NumberValue());
+    return v;
 }
 
 void Decoder::SetCurrentHolder(Local<Object> holder) {

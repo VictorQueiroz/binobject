@@ -1,14 +1,21 @@
-#include <nan.h>
-#include "decoder.h"
-
 #ifndef NODE_DECODER_H_
 #define NODE_DECODER_H_
+
+#include <nan.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <mffcodec.h>
+#ifdef __cplusplus
+}
+#endif
 
 using namespace v8;
 
 class Decoder : public Nan::ObjectWrap {
 private:
-    bo_decoder* decoder;
+    mff_deserializer* decoder;
     Local<Object> current_holder;
     Decoder(size_t byte_length, uint8_t* buffer);
     ~Decoder();
@@ -27,6 +34,7 @@ public:
     uint32_t ReadUInt32LE();
     int32_t ReadInt32LE();
     double ReadDoubleLE();
+    float ReadFloatLE();
     void ReadBytes(size_t length, uint8_t* buffer);
 };
 
@@ -34,5 +42,6 @@ Local<Value> ReadArray(Decoder* decoder);
 Local<Value> ReadValue(Decoder* decoder);
 void ReadObject(Decoder* decoder, Local<Object> result);
 Local<Value> ReadMapNative(Decoder* decoder);
+Local<Object> ReadBuffer(Decoder* decoder);
 
 #endif

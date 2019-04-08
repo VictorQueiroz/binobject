@@ -2,16 +2,22 @@
 #define NODE_ENCODER_H_
 
 #include <nan.h>
-#include "encoder.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <mffcodec.h>
+#ifdef __cplusplus
+}
+#endif
 
 using namespace v8;
 
 class Encoder : public Nan::ObjectWrap {
 private:
-    bo_encoder* encoder;
+    mff_serializer* encoder = nullptr;
     Encoder();
     ~Encoder();
-    void Finish();
     size_t Length();
     static Nan::Persistent<Function> constructor;
     static NAN_METHOD(New);
@@ -26,9 +32,14 @@ public:
     void SetCurrentHolder(Local<Object> holder);
     Local<Object> GetHolder();
 
-    void CopyContents(void* buffer);
+    /**
+     * Copy current serializer contents to buffer and move
+     * offset to zero
+     */
+    void FlushContents(void*);
     void WriteInt8(int8_t n);
     void WriteDoubleLE(double n);
+    void WriteFloatLE(float n);
     void WriteUInt8(uint8_t n);
     void WriteUInt16LE(uint16_t n);
     void WriteUInt32LE(uint32_t n);

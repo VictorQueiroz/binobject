@@ -1,4 +1,6 @@
+#include <iostream>
 #include <nan.h>
+#include <cmath>
 #include "custom-type.h"
 #include "node-encoder.h"
 #include "node-binobject.h"
@@ -8,11 +10,11 @@ using namespace v8;
 Nan::Persistent<Function> Encoder::constructor;
 
 Encoder::Encoder() {
-    bo_encoder_init(&encoder);
+    mff_serializer_init(&encoder);
 }
 
 Encoder::~Encoder() {
-    destroy_encoder(encoder);
+    mff_serializer_destroy(encoder);
 }
 
 int WriteInteger(Encoder* encoder, size_t byte_length, double number, bool _unsigned) {
@@ -26,6 +28,8 @@ int WriteInteger(Encoder* encoder, size_t byte_length, double number, bool _unsi
         integer_type = _unsigned ? BO::UInt32 : BO::Int32;
     else
         return BO::NumberErrors::InvalidByteLength;
+
+    // printf("Writing %lu byte integer of value %.6f (type = %d)\n", byte_length, number, integer_type);
 
     encoder->WriteUInt8(integer_type);
 
@@ -48,58 +52,61 @@ int WriteInteger(Encoder* encoder, size_t byte_length, double number, bool _unsi
         case BO::Int32:
             encoder->WriteInt32LE(number);
             break;
+        default:
+            return BO::NumberErrors::InvalidType;
     }
 
     return BO::NumberErrors::Ok;
 }
 
 void Encoder::WriteUInt8(uint8_t n) {
-    write_uint8(encoder, n);
+    mff_serializer_write_uint8(encoder, n);
+}
+
+void Encoder::WriteFloatLE(float n) {
+    mff_serializer_write_float(encoder, n);
 }
 
 void Encoder::WriteDoubleLE(double n){
-    write_double_le(encoder, n);
+    mff_serializer_write_double(encoder, n);
 }
 
 void Encoder::WriteInt8(int8_t n) {
-    write_int8(encoder, n);
+    mff_serializer_write_int8(encoder, n);
 }
 
 void Encoder::WriteInt16LE(int16_t n) {
-    write_int16_le(encoder, n);
+    mff_serializer_write_int16(encoder, n);
 }
 
 void Encoder::WriteUInt16LE(uint16_t n) {
-    write_uint16_le(encoder, n);
+    mff_serializer_write_uint16(encoder, n);
 }
 
 void Encoder::WriteUInt32LE(uint32_t n) {
-    write_uint32_le(encoder, n);
+    mff_serializer_write_uint32(encoder, n);
 }
 
 void Encoder::WriteInt32LE(int32_t n) {
-    write_int32_le(encoder, n);
+    mff_serializer_write_int32(encoder, n);
 }
 
 void Encoder::PushBuffer(size_t string_length, uint8_t* buffer){
-    push_buffer(encoder, string_length, buffer);
+    mff_serializer_write_buffer(encoder, buffer, (uint32_t) string_length);
 }
 
-void Encoder::Finish() {
-    bo_encoder_finish(encoder);
-}
-
-void Encoder::CopyContents(void* target) {
-    memcpy(target, encoder->final_buffer, Length());
+void Encoder::FlushContents(void* target) {
+    memcpy(target, encoder->buffer, Length());
+    encoder->offset = 0;
 }
 
 size_t Encoder::Length() {
-    return encoder->total_byte_length;
+    return encoder->offset;
 }
 
 void WriteString(Encoder* encoder, Local<String> value) {
-    int string_length = value->Length();
-    uint8_t* buffer = (uint8_t*) malloc(string_length + 1);
+    auto string_length = value->Length();
+    uint8_t buffer[string_length];
     value->WriteOneByte(buffer);
 
     WriteCompressedNumber(encoder, string_length);
@@ -121,8 +128,12 @@ void WriteCompressedNumber(Encoder* encoder, double number) {
         result = WriteInteger(encoder, 4, number, false);
     else if((number >= 0) && number <= 0xffffffff)
         result = WriteInteger(encoder, 4, number, true);
-    else
-        result = BO::NumberErrors::InvalidSize;
+    else {
+        encoder->WriteUInt8(BO::Double);
+        encoder->WriteDoubleLE(number);
+        result = BO::NumberErrors::Ok;
+    }
+        // result = BO::NumberErrors::InvalidSize;
 
     if(result != BO::NumberErrors::Ok) {
         if(result == BO::NumberErrors::InvalidSize)
@@ -133,9 +144,10 @@ void WriteCompressedNumber(Encoder* encoder, double number) {
 }
 
 void WriteNumber(Encoder* encoder, Local<Number> value) {
-    double number = value->Value();
-    if(isnan(number)) {
-        encoder->WriteUInt8(BO::Null);
+    double n = value->NumberValue();
+    if(std::isnan(n)) {
+        encoder->WriteUInt8(BO::Float);
+        encoder->WriteFloatLE(NAN);
         return;
     }
     WriteCompressedNumber(encoder, n);
@@ -144,8 +156,9 @@ void WriteNumber(Encoder* encoder, Local<Number> value) {
 void WriteArray(Encoder* encoder, Local<Array> array) {
     uint32_t length = array->Length();
 
-    encoder->WriteUInt8(BO::PropertyType::Array);
-    WriteNumber(encoder, length);
+    encoder->WriteUInt8(BO::Array);
+
+    WriteInteger(encoder, 4, length, true);
 
     for(uint32_t i = 0; i < length; i++)
         WriteValue(encoder, array->Get(i));
@@ -155,7 +168,7 @@ void WriteNativeMap(Encoder* encoder, Local<Map> map) {
     Local<Array> array = map->AsArray();
     size_t array_length = map->Size() * 2;
 
-    WriteNumber(encoder, array_length / 2);
+    WriteCompressedNumber(encoder, array_length / 2);
 
     for(size_t i = 0; i < array_length;) {
         Local<Value> prop = array->Get(Nan::New<Number>(i++));
@@ -199,7 +212,7 @@ bool CheckCustomType(Encoder* encoder, Local<Value> value) {
         uint8_t type = Local<Number>::Cast(instruction->Get(Nan::New("value").ToLocalChecked()))->Value();
 
         encoder->WriteUInt8(type);
-        WriteNumber(encoder, buffer_length);
+        WriteInteger(encoder, 4, buffer_length, true);
         encoder->PushBuffer(buffer_length, result);
         return true;
     }
@@ -214,12 +227,12 @@ void WriteValue(Encoder* encoder, Local<Value> value) {
 
     if(value->IsTypedArray()) {
         size_t byte_length = node::Buffer::Length(value);
-        uint8_t* buffer = (uint8_t*)malloc(byte_length);
+        uint8_t buffer[byte_length];
 
         memcpy(buffer, node::Buffer::Data(value), byte_length);
 
         encoder->WriteUInt8(BO::Buffer);
-        WriteNumber(encoder, byte_length);
+        WriteInteger(encoder, 4, byte_length, true);
         encoder->PushBuffer(byte_length, buffer);
     } else if(value->IsBoolean()) {
         Local<Boolean> boolean = Local<Boolean>::Cast(value);
@@ -291,15 +304,15 @@ NAN_METHOD(Encoder::Encode) {
 
     WriteValue(encoder, value);
 
-    encoder->Finish();
-
     size_t byte_length = encoder->Length();
     char* buffer = (char*) malloc(byte_length);
+    if(buffer == nullptr) {
+        Nan::ThrowError("Allocation failed");
+        return;
+    }
 
-    encoder->CopyContents(buffer);
-
-    Local<Object> result = Nan::NewBuffer(buffer, byte_length).ToLocalChecked();
-
+    encoder->FlushContents(buffer);
+    Local<Object> result = Nan::NewBuffer((char*)buffer, byte_length).ToLocalChecked();
     info.GetReturnValue().Set(result);
 }
 
