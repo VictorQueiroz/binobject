@@ -102,11 +102,11 @@ void WriteString(Encoder* encoder, Local<String> value) {
     uint8_t* buffer = (uint8_t*) malloc(string_length + 1);
     value->WriteOneByte(buffer);
 
-    WriteNumber(encoder, string_length);
+    WriteCompressedNumber(encoder, string_length);
     encoder->PushBuffer(string_length, buffer);
 }
 
-void WriteNumber(Encoder* encoder, double number) {
+void WriteCompressedNumber(Encoder* encoder, double number) {
     int result;
 
     if((number >= -0x80) && (number <= 0x7f))
@@ -138,7 +138,7 @@ void WriteNumber(Encoder* encoder, Local<Number> value) {
         encoder->WriteUInt8(BO::Null);
         return;
     }
-    WriteNumber(encoder, number);
+    WriteCompressedNumber(encoder, n);
 }
 
 void WriteArray(Encoder* encoder, Local<Array> array) {
@@ -265,7 +265,7 @@ void WriteObject(Encoder* encoder, Local<Object> object) {
     uint32_t length = properties->Length();
     
     encoder->WriteUInt8(BO::Object);
-    WriteNumber(encoder, length);
+    WriteCompressedNumber(encoder, length);
 
     for(uint32_t i = 0; i < length; i++){
         Local<String> name = properties->Get(i)->ToString(context).ToLocalChecked();

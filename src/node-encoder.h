@@ -37,7 +37,7 @@ public:
     void PushBuffer(size_t string_length, uint8_t* buffer);
 };
 
-void WriteNumber(Encoder* encoder, double number);
+void WriteCompressedNumber(Encoder*, double);
 void WriteNumber(Encoder* encoder, Local<Number> value);
 
 void WriteValue(Encoder* encoder, Local<Value> value);
