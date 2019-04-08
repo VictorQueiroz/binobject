@@ -16,11 +16,13 @@ namespace BO {
         UInt32 = 11,
         Int64 = 12,
         UInt64 = 13,
-        Boolean = 14,
-        Undefined = 15,
-        Map = 16,
-        Buffer = 17,
-        ArrayBuffer = 18
+        Float = 14,
+        Double = 15,
+        Boolean = 16,
+        Undefined = 17,
+        Map = 18,
+        Buffer = 19,
+        ArrayBuffer = 20
     };
     namespace NumberErrors {
         enum NumberErrors {
