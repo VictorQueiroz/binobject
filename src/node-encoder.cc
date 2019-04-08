@@ -283,11 +283,11 @@ Local<Object> Encoder::GetHolder() {
     return holder;
 }
 
-void Encoder::Encode(const Nan::FunctionCallbackInfo<Value>& args) {
-    Local<Value> value = args[0];
-    Encoder* encoder = Nan::ObjectWrap::Unwrap<Encoder>(args.Holder());
+NAN_METHOD(Encoder::Encode) {
+    Local<Value> value = info[0];
+    Encoder* encoder = Nan::ObjectWrap::Unwrap<Encoder>(info.Holder());
 
-    encoder->SetCurrentHolder(args.Holder());
+    encoder->SetCurrentHolder(info.Holder());
 
     WriteValue(encoder, value);
 
@@ -300,7 +300,7 @@ void Encoder::Encode(const Nan::FunctionCallbackInfo<Value>& args) {
 
     Local<Object> result = Nan::NewBuffer(buffer, byte_length).ToLocalChecked();
 
-    args.GetReturnValue().Set(result);
+    info.GetReturnValue().Set(result);
 }
 
 void Encoder::Init(Local<Object> exports) {
@@ -313,16 +313,16 @@ void Encoder::Init(Local<Object> exports) {
     exports->Set(Nan::New("ObjectEncoder").ToLocalChecked(), tpl->GetFunction());
 }
 
-void Encoder::New(const Nan::FunctionCallbackInfo<Value>& args) {
-    Local<Value> value = args[0];
+NAN_METHOD(Encoder::New) {
+    Local<Value> value = info[0];
 
-    if(args.Length() > 0 && !value->IsArray())
+    if(info.Length() > 0 && !value->IsArray())
         Nan::ThrowError("First argument must be an array or undefined");
     else if(value->IsArray())
-        args.This()->Set(Nan::New<String>("instructions").ToLocalChecked(), args[0]);
+        info.This()->Set(Nan::New<String>("instructions").ToLocalChecked(), info[0]);
 
     Encoder* encoder = new Encoder();
-    encoder->Wrap(args.This());
+    encoder->Wrap(info.This());
 
-    args.GetReturnValue().Set(args.This());
+    info.GetReturnValue().Set(info.This());
 }

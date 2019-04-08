@@ -14,14 +14,14 @@ private:
     void Finish();
     size_t Length();
     static Nan::Persistent<Function> constructor;
-    static void New(const Nan::FunctionCallbackInfo<Value>& args);
-    static void Encode(const Nan::FunctionCallbackInfo<Value>& args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(Encode);
     Local<Object> holder;
 
 public:
     static void Init(Local<Object> exports);
-    static void NewInstance(const Nan::FunctionCallbackInfo<Value>& args);
-    static void CreateObject(const Nan::FunctionCallbackInfo<Value>& args);
+    static NAN_METHOD(NewInstance);
+    static NAN_METHOD(CreateObject);
 
     void SetCurrentHolder(Local<Object> holder);
     Local<Object> GetHolder();
