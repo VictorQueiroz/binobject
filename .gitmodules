@@ -1,0 +1,3 @@
+[submodule "deps/libmffcodec"]
+	path = deps/libmffcodec
+	url = git@github.com:VictorQueiroz/libmffcodec.git
