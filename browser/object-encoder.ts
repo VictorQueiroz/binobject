@@ -202,7 +202,13 @@ export class ObjectEncoder {
     }
 
     public encode(object: any) {
-        this.encodeObject(object);
+        if(Array.isArray(object)) {
+            this.encodeArray(object);
+        } else if(typeof object === 'object' && object !== null) {
+            this.encodeObject(object);
+        } else {
+            throw new Error('encode() argument must be either an array or an object');
+        }
         return Buffer.concat(this.buffers.splice(0, this.buffers.length));
     }
 }
