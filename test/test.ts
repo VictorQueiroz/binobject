@@ -61,7 +61,6 @@ test('it should encode / decode big and deep javascript object', function() {
     const sourceObject = JSON.parse(fs.readFileSync(__dirname + '/test.json', 'utf8'));
 
     buffer = new ObjectEncoder().encode(sourceObject);
-
     assert.deepEqual(new ObjectDecoder(buffer).decode(), sourceObject);
 });
 

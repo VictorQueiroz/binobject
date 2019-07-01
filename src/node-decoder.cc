@@ -173,13 +173,13 @@ bool CheckCustomType(Decoder* decoder, uint8_t type, Local<Object>& processor) {
     uint32_t length = instructions->Length();
 
     for(uint32_t i = 0; i < length; i++) {
-        Local<Object> instruction = instructions->Get(i)->ToObject();
+        Local<Object> instruction = Nan::To<Object>(instructions->Get(i)).ToLocalChecked();
         Local<Uint32> value = Local<Uint32>::Cast(instruction->Get(Nan::New("value").ToLocalChecked()));
 
         if(value->Value() != type)
             continue;
 
-        processor = instruction->Get(Nan::New("processor").ToLocalChecked())->ToObject();
+        processor = Nan::To<Object>(instruction->Get(Nan::New("processor").ToLocalChecked())).ToLocalChecked();
         return true;
     }
 
@@ -296,5 +296,5 @@ void Decoder::Init(Local<Object> exports) {
 
     Nan::SetPrototypeMethod(tpl, "decode", Decode);
 
-    exports->Set(Nan::New("ObjectDecoder").ToLocalChecked(), tpl->GetFunction());
+    exports->Set(Nan::New("ObjectDecoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }

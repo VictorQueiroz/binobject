@@ -105,12 +105,12 @@ size_t Encoder::Length() {
 }
 
 void WriteString(Encoder* encoder, Local<String> value) {
-    auto string_length = value->Length();
-    uint8_t buffer[string_length];
-    value->WriteOneByte(buffer);
+    int length = value->Length();
+    char buffer[length];
+    Nan::DecodeWrite(buffer, length, value);
 
-    WriteCompressedNumber(encoder, string_length);
-    encoder->PushBuffer(string_length, buffer);
+    WriteCompressedNumber(encoder, length);
+    encoder->PushBuffer(length, (uint8_t*) buffer);
 }
 
 void WriteCompressedNumber(Encoder* encoder, double number) {
@@ -144,7 +144,7 @@ void WriteCompressedNumber(Encoder* encoder, double number) {
 }
 
 void WriteNumber(Encoder* encoder, Local<Number> value) {
-    double n = value->NumberValue();
+    double n = Nan::To<double>(value).FromJust();
     if(std::isnan(n)) {
         encoder->WriteUInt8(BO::Float);
         encoder->WriteFloatLE(NAN);
@@ -188,14 +188,14 @@ bool CheckCustomType(Encoder* encoder, Local<Value> value) {
 
     for(uint32_t i = 0; i < length; i++) {
         Local<Number> index = Nan::New<Number>(i);
-        Local<Object> instruction = instructions->Get(index)->ToObject();
+        Local<Object> instruction = Nan::To<Object>(instructions->Get(index)).ToLocalChecked();
 
         if(!instructions->Get(index)->IsObject()) {
             Nan::ThrowError("Instruction item should be plain objects");
             return true;
         }
 
-        Local<Object> processor = instruction->Get(Nan::New("processor").ToLocalChecked())->ToObject();
+        Local<Object> processor = Nan::To<Object>(instruction->Get(Nan::New("processor").ToLocalChecked())).ToLocalChecked();
         uint8_t validationResult = CustomType::Validate(processor, value);
         
         if(validationResult == 2)
@@ -273,7 +273,7 @@ void WriteValue(Encoder* encoder, Local<Value> value) {
 }
 
 void WriteObject(Encoder* encoder, Local<Object> object) {
-    Local<Array> properties = object->GetOwnPropertyNames();
+    Local<Array> properties = Nan::GetOwnPropertyNames(object).ToLocalChecked();
     Local<Context> context = Nan::GetCurrentContext();
     uint32_t length = properties->Length();
     
@@ -323,7 +323,7 @@ void Encoder::Init(Local<Object> exports) {
 
     Nan::SetPrototypeMethod(tpl, "encode", Encode);
 
-    exports->Set(Nan::New("ObjectEncoder").ToLocalChecked(), tpl->GetFunction());
+    exports->Set(Nan::New("ObjectEncoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(Encoder::New) {
