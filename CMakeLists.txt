@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_subdirectory(deps/libmffcodec)
 
 add_library(binobject SHARED src/custom-type.cpp src/node-encoder.cc src/node-decoder.cc src/node-binobject.cc)
-target_compile_options(binobject PRIVATE -fPIC)
+target_compile_options(binobject PRIVATE -fPIC -std=c++${CMAKE_CXX_STANDARD})
 if(CMAKE_JS_VERSION)
     include_directories(${CMAKE_JS_INC})
     set_target_properties(binobject PROPERTIES PREFIX "" SUFFIX ".node")
