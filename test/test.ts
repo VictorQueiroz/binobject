@@ -28,6 +28,15 @@ test('it should encode NaN as null', function() {
     });
 });
 
+test('it should support double-precision floating-point numbers', () => {
+    const buffer = new ObjectEncoder().encode({
+        object: 1.7976931348623157
+    });
+    assert.deepEqual(new ObjectDecoder(buffer).decode(), {
+        object: 1.7976931348623157
+    });
+});
+
 test('it should support date field objects', function() {
     let buffer: Buffer;
     const sourceObject = {

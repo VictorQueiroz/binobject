@@ -78,7 +78,9 @@ export class ObjectEncoder {
             this.writeUInt8(PropertyType.Null);
             return;
         }
-        if(value >= -0x80 && value <= 0x7f)
+        if(!Number.isInteger(value)) {
+            this.encodeDouble(value);
+        } else if(value >= -0x80 && value <= 0x7f)
             this.encodeInteger(1, value, false);
         else if(value >= 0 && value <= 0xff)
             this.encodeInteger(1, value, true);
@@ -90,8 +92,13 @@ export class ObjectEncoder {
             this.encodeInteger(4, value, true);
         else if(value >= -0x80000000 && value <= 0x7fffffff)
             this.encodeInteger(4, value, false);
-        else
-            throw new Error('Integer value out of bounds');
+    }
+
+    private encodeDouble(n: number) {
+        const buffer = Buffer.allocUnsafe(9);
+        buffer.writeUInt8(PropertyType.Double, 0);
+        buffer.writeDoubleLE(n, 1);
+        this.buffers.push(buffer);
     }
 
     private writeUInt8(value: number) {

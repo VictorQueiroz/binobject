@@ -19,7 +19,7 @@
 
 # Other files
 lib/
-build/
+build*/
 node_modules/
 .history/
 cmake-build-*/

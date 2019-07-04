@@ -111,6 +111,8 @@ export class ObjectDecoder {
             return this.readInt32LE();
         else if(type == PropertyType.UInt32)
             return this.readUInt32LE();
+        else if(type == PropertyType.Double)
+            return this.readDouble();
 
         throw new Error(`Invalid integer type: ${PropertyType[type]} || ${type}`);
     }
