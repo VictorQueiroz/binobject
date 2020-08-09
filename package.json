@@ -5,9 +5,9 @@
     "@types/node": "^9.6.5",
     "bson": "^2.0.5",
     "chai": "^4.2.0",
-    "sarg": "^2.0.10",
-    "ts-node": "^6.0.1",
-    "typescript": "^2.8.3"
+    "sarg": "^4.0.6",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   },
   "scripts": {
     "install": "npx cmake-js compile"
@@ -22,7 +22,7 @@
     "url": "https://github.com/VictorQueiroz/binobject.git"
   },
   "name": "binobject",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "keywords": [
     "binary",
     "json",
@@ -34,7 +34,8 @@
   "typings": "./lib/index.d.ts",
   "dependencies": {
     "bindings": "^1.5.0",
-    "cmake-js": "^5.1.1",
-    "nan": "^2.14.0"
+    "cmake-js": "^6.1.0",
+    "nan": "^2.14.1",
+    "tslib": "^2.0.1"
   }
 }
