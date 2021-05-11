@@ -1,6 +1,0 @@
-test/
-build*/
-browser/
-.vscode/
-.idea/
-deps/libmffcodec/.idea/

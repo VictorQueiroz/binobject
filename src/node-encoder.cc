@@ -161,7 +161,7 @@ void WriteArray(Encoder* encoder, Local<Array> array) {
     WriteInteger(encoder, 4, length, true);
 
     for(uint32_t i = 0; i < length; i++)
-        WriteValue(encoder, array->Get(i));
+        WriteValue(encoder, Nan::Get(array, i).ToLocalChecked());
 }
 
 void WriteNativeMap(Encoder* encoder, Local<Map> map) {
@@ -171,8 +171,8 @@ void WriteNativeMap(Encoder* encoder, Local<Map> map) {
     WriteCompressedNumber(encoder, array_length / 2);
 
     for(size_t i = 0; i < array_length;) {
-        Local<Value> prop = array->Get(Nan::New<Number>(i++));
-        Local<Value> value = array->Get(Nan::New<Number>(i++));
+        Local<Value> prop = Nan::Get(array, Nan::New<Number>(i++)).ToLocalChecked();
+        Local<Value> value = Nan::Get(array, Nan::New<Number>(i++)).ToLocalChecked();
 
         WriteValue(encoder, prop);
         WriteValue(encoder, value);
@@ -183,19 +183,24 @@ void WriteNativeMap(Encoder* encoder, Local<Map> map) {
  * Check if this value can be written using a type defined by the user
  */
 bool CheckCustomType(Encoder* encoder, Local<Value> value) {
-    Local<Array> instructions = Local<Array>::Cast(encoder->GetHolder()->Get(Nan::New("instructions").ToLocalChecked()));
+    Local<Array> instructions = Local<Array>::Cast(Nan::Get(
+        encoder->GetHolder(),
+        Nan::New("instructions").ToLocalChecked()
+    ).ToLocalChecked());
     uint32_t length = instructions->Length();
 
     for(uint32_t i = 0; i < length; i++) {
         Local<Number> index = Nan::New<Number>(i);
-        Local<Object> instruction = Nan::To<Object>(instructions->Get(index)).ToLocalChecked();
+        Local<Object> instruction = Nan::To<Object>(Nan::Get(instructions, index).ToLocalChecked()).ToLocalChecked();
 
-        if(!instructions->Get(index)->IsObject()) {
+        if(!Nan::Get(instructions, index).ToLocalChecked()->IsObject()) {
             Nan::ThrowError("Instruction item should be plain objects");
             return true;
         }
 
-        Local<Object> processor = Nan::To<Object>(instruction->Get(Nan::New("processor").ToLocalChecked())).ToLocalChecked();
+        Local<Object> processor = Nan::To<Object>(
+            Nan::Get(instruction, Nan::New("processor").ToLocalChecked()).ToLocalChecked()
+        ).ToLocalChecked();
         uint8_t validationResult = CustomType::Validate(processor, value);
         
         if(validationResult == 2)
@@ -209,7 +214,7 @@ bool CheckCustomType(Encoder* encoder, Local<Value> value) {
         if(CustomType::Encode(processor, value, &result, &buffer_length) != 0)
             return true;
 
-        uint8_t type = Local<Number>::Cast(instruction->Get(Nan::New("value").ToLocalChecked()))->Value();
+        uint8_t type = Local<Number>::Cast(Nan::Get(instruction, Nan::New("value").ToLocalChecked()).ToLocalChecked())->Value();
 
         encoder->WriteUInt8(type);
         WriteInteger(encoder, 4, buffer_length, true);
@@ -281,10 +286,10 @@ void WriteObject(Encoder* encoder, Local<Object> object) {
     WriteCompressedNumber(encoder, length);
 
     for(uint32_t i = 0; i < length; i++){
-        Local<String> name = properties->Get(i)->ToString(context).ToLocalChecked();
+        Local<String> name = Nan::Get(properties, i).ToLocalChecked()->ToString(context).ToLocalChecked();
 
         WriteString(encoder, name);
-        WriteValue(encoder, object->Get(name));
+        WriteValue(encoder, Nan::Get(object, name).ToLocalChecked());
     }
 }
 
@@ -323,7 +328,7 @@ void Encoder::Init(Local<Object> exports) {
 
     Nan::SetPrototypeMethod(tpl, "encode", Encode);
 
-    exports->Set(Nan::New("ObjectEncoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+    Nan::Set(exports, Nan::New("ObjectEncoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(Encoder::New) {
@@ -332,7 +337,7 @@ NAN_METHOD(Encoder::New) {
     if(info.Length() > 0 && !value->IsArray())
         Nan::ThrowError("First argument must be an array or undefined");
     else if(value->IsArray())
-        info.This()->Set(Nan::New<String>("instructions").ToLocalChecked(), info[0]);
+        Nan::Set(info.This(), Nan::New<String>("instructions").ToLocalChecked(), info[0]);
 
     Encoder* encoder = new Encoder();
     encoder->Wrap(info.This());

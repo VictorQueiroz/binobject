@@ -139,7 +139,7 @@ void ReadObject(Decoder* decoder, Local<Object> result) {
         Local<String> name = Nan::NewOneByteString(buffer, string_length).ToLocalChecked();
         Local<Value> value = ReadValue(decoder);
 
-        result->Set(name, value);
+        Nan::Set(result, name, value);
     }
 }
 
@@ -148,7 +148,7 @@ Local<Value> ReadArray(Decoder* decoder) {
     Local<Array> list = Nan::New<Array>(array_length);
 
     for(int i = 0; i < array_length; i++)
-        list->Set(Nan::New<Number>(i), ReadValue(decoder));
+        Nan::Set(list, Nan::New<Number>(i), ReadValue(decoder));
 
     return list;
 }
@@ -168,18 +168,18 @@ Local<Value> ReadMapNative(Decoder* decoder) {
 
 bool CheckCustomType(Decoder* decoder, uint8_t type, Local<Object>& processor) {
     Local<Object> holder = decoder->GetCurrentHolder();
-    Local<Array> instructions = Local<Array>::Cast(holder->Get(Nan::New("instructions").ToLocalChecked()));
+    Local<Array> instructions = Local<Array>::Cast(Nan::Get(holder, Nan::New("instructions").ToLocalChecked()).ToLocalChecked());
 
     uint32_t length = instructions->Length();
 
     for(uint32_t i = 0; i < length; i++) {
-        Local<Object> instruction = Nan::To<Object>(instructions->Get(i)).ToLocalChecked();
-        Local<Uint32> value = Local<Uint32>::Cast(instruction->Get(Nan::New("value").ToLocalChecked()));
+        Local<Object> instruction = Nan::To<Object>(Nan::Get(instructions, i).ToLocalChecked()).ToLocalChecked();
+        Local<Uint32> value = Local<Uint32>::Cast(Nan::Get(instruction, Nan::New("value").ToLocalChecked()).ToLocalChecked());
 
         if(value->Value() != type)
             continue;
 
-        processor = Nan::To<Object>(instruction->Get(Nan::New("processor").ToLocalChecked())).ToLocalChecked();
+        processor = Nan::To<Object>(Nan::Get(instruction, Nan::New("processor").ToLocalChecked()).ToLocalChecked()).ToLocalChecked();
         return true;
     }
 
@@ -281,7 +281,7 @@ NAN_METHOD(Decoder::New) {
     size_t byte_length = node::Buffer::Length(value);
     uint8_t* buffer = (uint8_t*) node::Buffer::Data(value);
 
-    instance->Set(Nan::New("instructions").ToLocalChecked(), info[1]);
+    Nan::Set(instance, Nan::New("instructions").ToLocalChecked(), info[1]);
 
     Decoder* decoder = new Decoder(byte_length, buffer);
     decoder->Wrap(instance);
@@ -296,5 +296,5 @@ void Decoder::Init(Local<Object> exports) {
 
     Nan::SetPrototypeMethod(tpl, "decode", Decode);
 
-    exports->Set(Nan::New("ObjectDecoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+    Nan::Set(exports, Nan::New("ObjectDecoder").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }

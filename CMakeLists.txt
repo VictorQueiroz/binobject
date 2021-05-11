@@ -12,6 +12,7 @@ if(CMAKE_JS_VERSION)
     set_target_properties(binobject PROPERTIES PREFIX "" SUFFIX ".node")
     target_link_libraries(binobject PRIVATE ${CMAKE_JS_LIB} mffcodec)
 else()
-    target_include_directories(binobject PRIVATE node_modules/nan $ENV{NODE_PATH}/include/node)
+    target_include_directories(binobject PRIVATE node_modules/nan $ENV{NODE_INSTALL_DIR}/include/node)
     target_link_libraries(binobject PRIVATE mffcodec)
 endif()
+

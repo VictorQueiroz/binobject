@@ -9,7 +9,7 @@
 uint8_t CustomType::Validate(Local<Object> processor, Local<Value> value) {
     Local<Value> args[1] = { value };
     Local<Context> context = Nan::GetCurrentContext();
-    Local<Function> validate = Local<Function>::Cast(processor->Get(Nan::New("validate").ToLocalChecked()));
+    Local<Function> validate = Local<Function>::Cast(Nan::Get(processor, Nan::New("validate").ToLocalChecked()).ToLocalChecked());
 
     Local<Value> result = validate->Call(context, processor, 1, args).ToLocalChecked();
 
@@ -18,12 +18,12 @@ uint8_t CustomType::Validate(Local<Object> processor, Local<Value> value) {
         return 2;
     }
 
-    return result->ToBoolean(context).ToLocalChecked()->Value() == true ? 1 : 0;
+    return Nan::To<v8::Boolean>(result).ToLocalChecked()->Value() ? 1 : 0;
 }
 
 Local<Value> CustomType::Decode(size_t byte_length, uint8_t* input_buffer, Local<Object> processor) {
     Local<Context> context = Nan::GetCurrentContext();
-    Local<Function> decodeFunction = Local<Function>::Cast(processor->Get(Nan::New("decode").ToLocalChecked()));
+    Local<Function> decodeFunction = Local<Function>::Cast(Nan::Get(processor, Nan::New("decode").ToLocalChecked()).ToLocalChecked());
     Local<Object> nodejs_buffer = Nan::NewBuffer((char*) input_buffer, byte_length).ToLocalChecked();
     Local<Value> args[1] = { nodejs_buffer };
 
@@ -33,7 +33,7 @@ Local<Value> CustomType::Decode(size_t byte_length, uint8_t* input_buffer, Local
 uint8_t CustomType::Encode(Local<Object> processor, Local<Value> value, uint8_t** result, size_t* byte_length) {
     Local<Value> args[1] = { value };
     Local<Context> context = Nan::GetCurrentContext();
-    Local<Function> encodeFunction = Local<Function>::Cast(processor->Get(Nan::New("encode").ToLocalChecked()));
+    Local<Function> encodeFunction = Local<Function>::Cast(Nan::Get(processor, Nan::New("encode").ToLocalChecked()).ToLocalChecked());
     Local<Value> buffer = encodeFunction->Call(context, processor, 1, args).ToLocalChecked();
 
     if(!buffer->IsTypedArray()){
